@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 민감한 설정 파일들
 application-secret.properties
 application-local.properties
@@ -8,12 +9,19 @@ application-test.properties
 application-production.properties
 
 # Maven
+=======
+HELP.md
+>>>>>>> 4de31b1 (connect)
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+<<<<<<< HEAD
 # STS
+=======
+### STS ###
+>>>>>>> 4de31b1 (connect)
 .apt_generated
 .classpath
 .factorypath
@@ -22,22 +30,35 @@ target/
 .springBeans
 .sts4-cache
 
+<<<<<<< HEAD
 # IntelliJ IDEA
+=======
+### IntelliJ IDEA ###
+>>>>>>> 4de31b1 (connect)
 .idea
 *.iws
 *.iml
 *.ipr
 
+<<<<<<< HEAD
 # NetBeans
+=======
+### NetBeans ###
+>>>>>>> 4de31b1 (connect)
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
+<<<<<<< HEAD
 /.nb-gradle/a
+=======
+/.nb-gradle/
+>>>>>>> 4de31b1 (connect)
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+<<<<<<< HEAD
 # VS Code
 .vscode/
 # 로그 파일
@@ -96,3 +117,7 @@ application-override.properties
 src/main/resources/application-secret.properties
 .env
 
+=======
+### VS Code ###
+.vscode/
+>>>>>>> 4de31b1 (connect)
