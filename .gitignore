@@ -1,10 +1,18 @@
-HELP.md
+# 민감한 설정 파일들
+application-secret.properties
+application-local.properties
+*.secret.properties
+
+# 환경별 설정 파일 (필요시)
+application-production.properties
+
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,13 +21,13 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# IntelliJ IDEA
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,5 +37,58 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
+
+# 로그 파일
+logs/
+*.log
+*.log.*
+
+# 임시 파일
+*.tmp
+*.temp
+*~
+
+# OS 관련
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.sqlite3
+
+# 환경 변수 파일
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 업로드된 파일들
+uploads/
+files/
+images/
+
+# 캐시 디렉토리
+.cache/
+
+# 백업 파일
+*.bak
+*.backup
+
+# 키 파일들
+*.key
+*.pem
+*.p12
+*.jks
+
+# 설정 오버라이드 파일
+config-override.properties
+application-override.properties
