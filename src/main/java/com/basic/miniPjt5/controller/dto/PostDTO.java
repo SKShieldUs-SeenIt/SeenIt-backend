@@ -1,0 +1,109 @@
+package com.basic.miniPjt5.controller.dto;
+
+import com.basic.miniPjt5.entity.Post;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+public class PostDTO {
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class createRequest {
+        @NotBlank(message = "제목은 필수 입력사항 입니다.")
+        @Size(max = 100, message = "제목은 100자 이상 작성할 수 없습니다.")
+        private String title;
+
+        @NotBlank(message = "내용은 필수 입력사항 입니다.")
+        @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
+        private String content;
+
+        @Size(max = 500, message = "500자 이상 길이의 url은 등록할 수 없습니다.")
+        private String imageUrl;
+
+        private String contentType;
+
+        private Long contentId;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class updateRequest {
+        @NotBlank(message = "제목은 필수 입력사항 입니다.")
+        @Size(max = 100, message = "제목은 100자 이상 작성할 수 없습니다.")
+        private String title;
+
+        @NotBlank(message = "내용은 필수 입력사항 입니다.")
+        @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
+        private String content;
+
+        @Size(max = 500, message = "500자 이상 길이의 url은 등록할 수 없습니다.")
+        private String imageUrl;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ListResponse {
+        private Long id;
+        private String code;
+        private String title;
+        private String content;
+        private String imageUrl;
+        private String contentType;
+        private Long contentId;
+        private UserDTO.SimpleResponse user;
+
+        public static ListResponse fromEntity(Post post) {
+            return ListResponse.builder()
+                    .id(post.getId())
+                    .code(post.getCode())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .contentType(post.getContentType())
+                    .contentId(post.getContentId())
+                    .user(UserDTO.SimpleResponse.fromEntity(post.getUser()))
+                    .build();
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Response {
+        private Long id;
+        private String code;
+        private String title;
+        private String content;
+        private String imageUrl;
+        private String contentType;
+        private Long contentId;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private UserDTO.SimpleResponse user;
+
+        public static Response fromEntity(Post post) {
+            return Response.builder()
+                    .id(post.getId())
+                    .code(post.getCode())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .contentType(post.getContentType())
+                    .contentId(post.getContentId())
+                    .createdAt(post.getCreatedAt())
+                    .updatedAt(post.getUpdatedAt())
+                    .user(UserDTO.SimpleResponse.fromEntity(post.getUser()))
+                    .build();
+        }
+    }
+}
