@@ -1,5 +1,6 @@
 package com.basic.miniPjt5.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,6 +33,7 @@ public class Drama implements Content {
         joinColumns = @JoinColumn(name = "drama_id"), // Drama 엔티티의 PK
         inverseJoinColumns = @JoinColumn(name = "genre_id") // Genre 엔티티의 PK
     )
+    @JsonIgnore
     private List<Genre> genres = new ArrayList<>();
 
     @Column(nullable = false)
@@ -41,6 +43,7 @@ public class Drama implements Content {
     private Double voteAverage; // 평균 별점
 
     @OneToMany(mappedBy = "drama", cascade = CascadeType.ALL, orphanRemoval = true) // Drama와 Review는 일대다 관계
+    @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
     // TMDB API에서 가져올 수 있는 추가 필드들 (선택 사항)

@@ -6,10 +6,15 @@ import com.basic.miniPjt5.repository.GenreRepository;
 import com.basic.miniPjt5.repository.MovieRepository;
 import com.basic.miniPjt5.service.ContentSearchService;
 import com.basic.miniPjt5.service.StatisticsService;
+import com.basic.miniPjt5.service.TMDBApiService;
+import com.basic.miniPjt5.service.TMDBDataInitializationService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Transactional  // 각 테스트 후 롤백
+@Rollback       // 명시적 롤백
 class ServiceLayerTest {
 
     @Autowired
@@ -34,8 +41,18 @@ class ServiceLayerTest {
     @Autowired
     private MovieRepository movieRepository;
 
+    @MockBean
+    private TMDBApiService tmdbApiService;
+
+    @MockBean
+    private TMDBDataInitializationService tmdbDataInitializationService;
+
     @BeforeEach
     void setUp() {
+        // 기존 데이터 삭제
+        movieRepository.deleteAll();
+        genreRepository.deleteAll();
+
         setupTestData();
     }
 
@@ -45,24 +62,23 @@ class ServiceLayerTest {
         Genre comedyGenre = Genre.builder().id(35L).name("Comedy").build();
         genreRepository.saveAll(List.of(actionGenre, comedyGenre));
 
-        // 영화 설정
+        // 영화 설정 - 고유한 tmdbId 사용
         List<Movie> movies = List.of(
                 Movie.builder()
-                        .tmdbId(1L).title("Action Movie 1")
+                        .tmdbId(101L).title("Action Movie 1")  // 고유한 ID
                         .voteAverage(8.0).voteCount(1000)
                         .genres(List.of(actionGenre)).build(),
                 Movie.builder()
-                        .tmdbId(2L).title("Comedy Movie 1")
+                        .tmdbId(102L).title("Comedy Movie 1")  // 고유한 ID
                         .voteAverage(7.5).voteCount(800)
                         .genres(List.of(comedyGenre)).build(),
                 Movie.builder()
-                        .tmdbId(3L).title("Action Comedy Mix")
+                        .tmdbId(103L).title("Action Comedy Mix")  // 고유한 ID
                         .voteAverage(8.5).voteCount(1200)
                         .genres(List.of(actionGenre, comedyGenre)).build()
         );
         movieRepository.saveAll(movies);
     }
-
     @Test
     @Order(1)
     @DisplayName("로컬 DB 영화 검색 테스트")

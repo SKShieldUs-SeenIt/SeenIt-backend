@@ -21,4 +21,5 @@ public class TestConfig {
     public DataValidationUtil mockDataValidationUtil() {
         return Mockito.mock(DataValidationUtil.class);
     }
+
 }

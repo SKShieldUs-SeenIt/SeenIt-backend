@@ -18,9 +18,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "users", indexes = {
-    @Index(name = "idx_user_number", columnList = "user_number"),
-    @Index(name = "idx_email", columnList = "email"),
-    @Index(name = "idx_status", columnList = "status")
+        @Index(name = "idx_kakao_id", columnList = "kakao_id"),
+        @Index(name = "idx_email", columnList = "email"),
+        @Index(name = "idx_status", columnList = "status")
 })
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

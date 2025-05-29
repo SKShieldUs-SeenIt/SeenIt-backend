@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,8 +50,8 @@ class ContentSearchServiceMockTest {
         // given
         String query = "avengers";
         List<Movie> mockMovies = TestDataBuilder.createMockMovies();
-        
-        when(movieRepository.findByTitleContaining(query)).thenReturn(mockMovies);
+
+        when(movieRepository.findByTitleContainingIgnoreCase(anyString())).thenReturn(mockMovies);
 
         // when
         List<Movie> result = contentSearchService.searchMoviesInDB(query);
@@ -60,8 +59,8 @@ class ContentSearchServiceMockTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTitle()).contains("Avengers");
-        verify(movieRepository).findByTitleContaining(query);
-        
+        verify(movieRepository).findByTitleContainingIgnoreCase(query.trim());
+
         System.out.println("Mock 테스트 결과 수: " + result.size());
     }
 

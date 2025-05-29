@@ -50,8 +50,9 @@ class ContentSearchServiceUnitTest {
         // given
         String query = "avengers";
         List<Movie> mockMovies = TestDataBuilder.createMockMovies();
-        
-        when(movieRepository.findByTitleContaining(query)).thenReturn(mockMovies);
+
+        // 올바른 메서드로 Mock 설정 변경
+        when(movieRepository.findByTitleContainingIgnoreCase(query.trim())).thenReturn(mockMovies);
 
         // when
         List<Movie> result = contentSearchService.searchMoviesInDB(query);
@@ -59,11 +60,10 @@ class ContentSearchServiceUnitTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTitle()).contains("Avengers");
-        verify(movieRepository).findByTitleContaining(query);
-        
+        verify(movieRepository).findByTitleContainingIgnoreCase(query.trim()); // verify도 함께 수정
+
         System.out.println("단위 테스트 결과 수: " + result.size());
     }
-
     @Test
     @DisplayName("TMDB API 검색 단위 테스트")
     void testSearchAndSaveMovies() {

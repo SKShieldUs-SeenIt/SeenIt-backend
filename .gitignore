@@ -1,6 +1,7 @@
 # 민감한 설정 파일들
 application-secret.properties
 application-local.properties
+application-test.properties
 *.secret.properties
 
 # 환경별 설정 파일 (필요시)

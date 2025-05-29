@@ -23,10 +23,10 @@ import static org.mockito.Mockito.when;
 // 에러 시나리오 테스트
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestConfig.class)  // TestConfiguration 임포트
+@Import(TestConfig.class)
 class ErrorScenarioTest {
 
-    @Autowired  // @MockBean 대신 @Autowired 사용
+    @MockBean  // @Autowired 대신 @MockBean 사용
     private TMDBApiService tmdbApiService;
 
     @Autowired

@@ -6,7 +6,9 @@ import com.basic.miniPjt5.service.ContentSearchService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 // 성능 테스트를 위한 클래스
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional  // 추가
+@Rollback
 class PerformanceTest {
 
     @Autowired
@@ -26,17 +30,25 @@ class PerformanceTest {
 
     @BeforeEach
     void setUp() {
+        // 기존 데이터 삭제
+        movieRepository.deleteAll();
+
         // 대량의 테스트 데이터 생성
         List<Movie> movies = new ArrayList<>();
         for (int i = 1; i <= 100; i++) {
-            movies.add(Movie.builder()
-                    .tmdbId((long) i)
-                    .title("Movie " + i)
-                    .voteAverage(5.0 + (Math.random() * 5))
-                    .voteCount((int) (Math.random() * 10000))
-                    .build());
+            // 중복 체크 후 저장
+            if (movieRepository.findByTmdbId((long) i).isEmpty()) {
+                movies.add(Movie.builder()
+                        .tmdbId((long) i)
+                        .title("Movie " + i)
+                        .voteAverage(5.0 + (Math.random() * 5))
+                        .voteCount((int) (Math.random() * 10000))
+                        .build());
+            }
         }
-        movieRepository.saveAll(movies);
+        if (!movies.isEmpty()) {
+            movieRepository.saveAll(movies);
+        }
     }
 
     @Test
