@@ -3,6 +3,7 @@ package com.basic.miniPjt5.DTO;
 import lombok.Getter;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 
 @Getter
 @Builder

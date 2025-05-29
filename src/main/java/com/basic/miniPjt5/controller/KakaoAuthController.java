@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.basic.miniPjt5.auth.service.impl.KakaoAuthServiceImpl;  // 네 서비스 위치에 따라 경로 맞춰서
-import com.basic.miniPjt5.auth.dto.KakaoLoginResponse;
+import com.basic.miniPjt5.service.impl.KakaoAuthServiceImpl;
+import com.basic.miniPjt5.DTO.KakaoLoginResponse;
 
 @RestController
 @RequestMapping("/api/auth")
