@@ -161,9 +161,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		<groupId>io.projectreactor</groupId>
-		<artifactId>reactor-test</artifactId>
-		<scope>test</scope>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- JWT - 0528 추가 -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

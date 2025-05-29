@@ -4,7 +4,9 @@ import com.basic.miniPjt5.controller.dto.PostDTO;
 import com.basic.miniPjt5.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,16 +35,18 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    @PostMapping
-    public ResponseEntity<PostDTO.Response> createPost(@Valid @RequestBody PostDTO.createRequest request, @AuthenticationPrincipal UserPrincipal userPrincipal){
+    @PostMapping(value = "/create/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PostDTO.Response> createPost(@Valid @ModelAttribute PostDTO.createRequest request,
+                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
         PostDTO.Response createPost = postService.createPost(request, userPrincipal.getId());
         return ResponseEntity.ok(createPost);
     }
 
-    @PatchMapping("/update/{code}")
+    @PutMapping(value = "/update/{code}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> updatePost(@PathVariable String code,
-                                           @Valid @RequestBody PostDTO.updateRequest request){
-        PostDTO.Response updatedPost = postService.updatePost(code, request);
+                                                        @Valid @ModelAttribute PostDTO.updateRequest request,
+                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
+        PostDTO.Response updatedPost = postService.updatePost(code, request, userPrincipal.getId());
         return ResponseEntity.ok(updatedPost);
     }
 

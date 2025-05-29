@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -24,12 +25,25 @@ public class PostDTO {
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
         private String content;
 
-        @Size(max = 500, message = "500자 이상 길이의 url은 등록할 수 없습니다.")
-        private String imageUrl;
+        private MultipartFile image;
 
         private String contentType;
 
         private Long contentId;
+
+        private User user;
+
+        public Post toEntity(String imageUrl, User user) {
+            return Post.builder()
+                    .title(title)
+                    .content(content)
+                    .imageUrl(imageUrl)
+                    .contentType(contentType)
+                    .contentId(contentId)
+                    .user(user)
+                    .build();
+        }
+
     }
 
     @Data
@@ -45,8 +59,10 @@ public class PostDTO {
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
         private String content;
 
-        @Size(max = 500, message = "500자 이상 길이의 url은 등록할 수 없습니다.")
-        private String imageUrl;
+        private MultipartFile image;
+
+        private boolean deleteExistingImage;
+
     }
 
     @Data

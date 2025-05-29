@@ -29,7 +29,8 @@ public enum ErrorCode {
 
     //Post 관련(40X)
     POST_NOT_FOUND("POST_001", "게시글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
-    POST_CODE_DUBPLICATE("POST_002","이미 사용 중인 게시글 코드입니다.", HttpStatus.CONFLICT),
+    POST_CODE_DUPLICATE("POST_002","이미 사용 중인 게시글 코드입니다", HttpStatus.CONFLICT),
+    POST_ACCESS_DENIED("AUTH_004", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
 
     // 대출 관련 (40X)
     LOAN_NOT_FOUND("LOAN_001", "대출 정보를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
@@ -60,7 +61,11 @@ public enum ErrorCode {
     // 서버 오류 (50X)
     INTERNAL_SERVER_ERROR("SERVER_001", "서버 내부 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     DATABASE_ERROR("SERVER_002", "데이터베이스 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
-    EXTERNAL_API_ERROR("SERVER_003", "외부 API 호출 중 오류가 발생했습니다", HttpStatus.BAD_GATEWAY);
+    EXTERNAL_API_ERROR("SERVER_003", "외부 API 호출 중 오류가 발생했습니다", HttpStatus.BAD_GATEWAY),
+
+    //이미지 업로드 오류
+    FILE_UPLOAD_FAILED("IMAGE_001", "이미지 저장에 실패했습니다",  HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_DELETE_FAILED("IMAGE_002", "이미지 삭제에 실패했습니다",  HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String code;
     private final String message;
