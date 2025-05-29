@@ -115,7 +115,6 @@ config-override.properties
 application-override.properties
 # secrets
 src/main/resources/application-secret.properties
-.env
 
 =======
 ### VS Code ###
