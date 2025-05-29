@@ -1,11 +1,12 @@
-package com.basic.miniPjt5.auth.service.impl;
+package com.basic.miniPjt5.service.impl;
 
-import com.basic.miniPjt5.auth.dto.KakaoLoginResponse;
-import com.basic.miniPjt5.auth.dto.KakaoTokenResponse;
-import com.basic.miniPjt5.auth.dto.KakaoUserInfo;
-import com.basic.miniPjt5.auth.service.KakaoAuthService;
-import com.basic.miniPjt5.domain.User;
-import com.basic.miniPjt5.auth.service.UserService;
+import com.basic.miniPjt5.DTO.KakaoLoginResponse;
+import com.basic.miniPjt5.DTO.KakaoTokenResponse;
+import com.basic.miniPjt5.DTO.KakaoUserInfo;
+import com.basic.miniPjt5.service.KakaoAuthService;
+import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.service.UserService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
