@@ -1,4 +1,4 @@
-package com.basic.miniPjt5.controller.dto;
+package com.basic.miniPjt5.DTO;
 
 import com.basic.miniPjt5.entity.Post;
 import jakarta.validation.constraints.NotBlank;
