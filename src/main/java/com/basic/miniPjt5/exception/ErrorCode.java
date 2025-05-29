@@ -1,8 +1,7 @@
 //ErrorCode enum 상수정의
 package com.basic.miniPjt5.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 
 @Getter

@@ -1,6 +1,6 @@
 package com.basic.miniPjt5.controller;
 
-import com.basic.miniPjt5.controller.dto.PostDTO;
+import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
