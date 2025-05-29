@@ -1,8 +1,10 @@
 package com.basic.miniPjt5.DTO;
 
 import com.basic.miniPjt5.entity.Post;
+import com.basic.miniPjt5.entity.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
