@@ -1,7 +1,8 @@
-package com.basic.miniPjt5.auth.service;
+package com.basic.miniPjt5.service;
 
-import com.basic.miniPjt5.domain.User;
-import com.basic.miniPjt5.auth.repository.UserRepository;
+import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
