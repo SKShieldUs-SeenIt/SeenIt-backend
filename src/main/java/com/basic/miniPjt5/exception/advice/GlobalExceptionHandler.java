@@ -34,35 +34,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(errorResponse);
     }
-
-    /**
-     * 검증 예외 처리
-     */
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException e) {
-        log.warn("Validation exception: {}", e.getMessage());
-
-        List<ErrorResponse.FieldError> fieldErrors = e.getFieldErrors().stream()
-                .map(fieldError -> ErrorResponse.FieldError.builder()
-                        .field(fieldError.getField())
-                        .message(fieldError.getMessage())
-                        .rejectedValue(fieldError.getRejectedValue())
-                        .build())
-                .collect(Collectors.toList());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .error(ErrorResponse.ErrorDetail.builder()
-                        .code(e.getErrorCode().getCode())
-                        .message(e.getErrorCode().getMessage())
-                        .fieldErrors(fieldErrors)
-                        .build())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.badRequest().body(errorResponse);
-    }
-
     /**
      * Spring Validation 예외 처리
      */
@@ -89,26 +60,6 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.badRequest().body(errorResponse);
-    }
-
-    /**
-     * 엔티티 없음 예외 처리
-     */
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.warn("Entity not found: {}", e.getMessage());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .error(ErrorResponse.ErrorDetail.builder()
-                        .code(e.getErrorCode().getCode())
-                        .message(e.getErrorCode().getMessage())
-                        .detail(e.getDetail())
-                        .build())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     /**
