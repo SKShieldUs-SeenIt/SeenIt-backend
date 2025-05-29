@@ -1,6 +1,6 @@
 package com.basic.miniPjt5.service;
 
-import com.basic.miniPjt5.controller.dto.PostDTO;
+import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
