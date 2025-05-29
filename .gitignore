@@ -33,14 +33,13 @@ target/
 /nbbuild/
 /dist/
 /nbdist/
-/.nb-gradle/
+/.nb-gradle/a
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
 # VS Code
 .vscode/
-
 # 로그 파일
 logs/
 *.log
@@ -93,3 +92,7 @@ images/
 # 설정 오버라이드 파일
 config-override.properties
 application-override.properties
+# secrets
+src/main/resources/application-secret.properties
+.env
+
