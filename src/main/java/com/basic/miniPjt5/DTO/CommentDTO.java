@@ -28,14 +28,6 @@ public class CommentDTO {
 
         private Long parentId;
 
-        private Long postId;
-
-        private Long userId;
-
-        private User user;
-
-        private Post post;
-
         public Comment toEntity(User user, Post post) {
             return Comment.builder()
                     .content(content)
@@ -59,94 +51,32 @@ public class CommentDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class ListResponse {
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class ParentResponse {
-            private Long id;
-            private String content;
-            private Long parentCommentId;
-            private List<ChildResponse> childComments;
-            private UserDTO.SimpleResponse user;
-            private Long postId;
-
-            public static List<ParentResponse> fromEntity(List<Comment> comments) {
-                if (comments == null)
-                    return Collections.emptyList();
-                return comments.stream()
-                        .filter(c-> c.getParentComment() == null)
-                        .map(ParentResponse::fromEntity)
-                        .collect(Collectors.toList());
-            }
-            public static ParentResponse fromEntity(Comment comment) {
-                return ParentResponse.builder()
-                        .id(comment.getId())
-                        .content(comment.getContent())
-                        .parentCommentId(null)
-                        .childComments(comment.getChildComments() == null ? Collections.emptyList():
-                                        comment.getChildComments().stream()
-                                                .map(ChildResponse::fromEntity)
-                                                .collect(Collectors.toList()))
-                        .user(UserDTO.SimpleResponse.fromEntity(comment.getUser()))
-                        .postId(comment.getPost().getId())
-                        .build();
-            }
-        }
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class ChildResponse {
-            private Long id;
-            private String content;
-            private Long parentCommentId;
-            private UserDTO.SimpleResponse user;
-            private Long postId;
-
-            public static ChildResponse fromEntity(Comment comment) {
-                return ChildResponse.builder()
-                        .id(comment.getId())
-                        .content(comment.getContent())
-                        .parentCommentId(comment.getParentComment().getId())
-                        .user(UserDTO.SimpleResponse.fromEntity(comment.getUser()))
-                        .postId(comment.getPost().getId())
-                        .build();
-            }
-        }
-
-
-
-    }
-
-
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     public static class Response {
         private Long id;
         private String content;
-        private CommentDTO.Response parentComment;
-        private List<ListResponse.ChildResponse> childComments;
+        private Long parentCommentId;
+        private List<Response> childComments;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private UserDTO.SimpleResponse user;
         private Long postId;
 
         public static CommentDTO.Response fromEntity(Comment comment) {
+            //null이면(댓글일 때) true, not null이면(대댓글일 때) false
+            boolean isParent = comment.getParentComment() == null;
+
             return Response.builder()
                     .id(comment.getId())
                     .content(comment.getContent())
-                    .parentComment(Response.fromEntity(comment.getParentComment())
-                    .childComments(comment.getChildComments())
+                    .parentCommentId(isParent ? null : comment.getParentComment().getId())
+                    .childComments(isParent ? comment.getChildComments().stream()
+                                    .map(Response::fromEntity)
+                                    .collect(Collectors.toList())
+                                    :Collections.emptyList())
                     .createdAt(comment.getCreatedAt())
                     .updatedAt(comment.getUpdatedAt())
                     .user(UserDTO.SimpleResponse.fromEntity(comment.getUser()))
+                    .postId(comment.getPost().getId())
                     .build();
         }
     }

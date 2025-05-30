@@ -1,7 +1,6 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.CommentDTO;
-import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
@@ -24,13 +23,13 @@ public class CommentService {
     private final PostRepository postRepository;
     private  final UserRepository userRepository;
 
-    public List<CommentDTO.ListResponse> getCommentsByPost(String postCode){
+    public List<CommentDTO.Response> getCommentsByPost(String postCode){
         Post post = postRepository.findByCode(postCode)
                 .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         return commentRepository.findCommentsByPost(post.getId())
                 .stream()
-                .map(CommentDTO.ListResponse::fromEntity)
+                .map(CommentDTO.Response::fromEntity)
                 .toList();
     }
 
@@ -61,10 +60,7 @@ public class CommentService {
         Comment comment = commentRepository.findCommentById(commentId)
                 .orElseThrow(()->new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        if (!comment.getUser().getId().equals(userId)) {
+        if (!comment.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 수정할 수 있습니다.");
         }
         if(request.getContent() == null)
