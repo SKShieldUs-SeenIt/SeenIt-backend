@@ -1,6 +1,6 @@
 package com.basic.miniPjt5;
 
-import com.basic.miniPjt5.DTO.*;
+import com.basic.miniPjt5.response.*;
 import com.basic.miniPjt5.service.TMDBApiService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -8,30 +8,32 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
-@Table(name = "ratings", indexes = {
-        @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_drama_id", columnList = "drama_id"),
-        @Index(name = "idx_movie_id", columnList = "movie_id")
-})
+@Table(name = "ratings",
+        indexes = {
+                @Index(name = "idx_user_id", columnList = "user_id"),
+                @Index(name = "idx_drama_id", columnList = "drama_id"),
+                @Index(name = "idx_movie_id", columnList = "movie_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_movie", columnNames = {"user_id", "movie_id"}),
+                @UniqueConstraint(name = "uk_user_drama", columnNames = {"user_id", "drama_id"})
+        }
+)
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Rating extends BaseEntity {
 
-    // 별점 고유 식별자 (PK)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rating_id")
     private Long id;
 
-    // 별점 점수 (1~5)
+    // 별점 점수 (1~10)
     @Column(nullable = false)
     @Min(1)
-    @Max(5)
+    @Max(10)
     private int score;
 
     // 작성자 (User FK)
@@ -39,28 +41,60 @@ public class Rating extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 드라마 고유 식별자
-    @Column(name = "drama_id", nullable = true)
-    private Long dramaId;
+    // 영화와의 관계 (선택적)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
 
-    // 영화 고유 식별자
-    @Column(name = "movie_id", nullable = true)
-    private Long movieId;
+    // 드라마와의 관계 (선택적)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drama_id")
+    private Drama drama;
 
     // 별점 수정 메서드
     public void updateScore(int newScore) {
-        if (newScore >= 1 && newScore <= 5) {
+        if (newScore >= 1 && newScore <= 10) {
             this.score = newScore;
         } else {
-            throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
         }
     }
 
-    // 생성자
-    public Rating(User user, int score, Long dramaId, Long movieId) {
+    // 생성자 - 영화 별점용
+    public Rating(User user, int score, Movie movie) {
+        if (score < 1 || score > 10) {
+            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
+        }
         this.user = user;
         this.score = score;
-        this.dramaId = dramaId;
-        this.movieId = movieId;
+        this.movie = movie;
+    }
+
+    // 생성자 - 드라마 별점용
+    public Rating(User user, int score, Drama drama) {
+        if (score < 1 || score > 10) {
+            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
+        }
+        this.user = user;
+        this.score = score;
+        this.drama = drama;
+    }
+
+    // 유틸리티 메서드
+    public boolean isMovieRating() {
+        return movie != null;
+    }
+
+    public boolean isDramaRating() {
+        return drama != null;
+    }
+
+    // 데이터 검증 메서드
+    @PrePersist
+    @PreUpdate
+    private void validateRating() {
+        if ((movie == null && drama == null) || (movie != null && drama != null)) {
+            throw new IllegalStateException("영화 또는 드라마 중 하나만 선택해야 합니다.");
+        }
     }
 }
