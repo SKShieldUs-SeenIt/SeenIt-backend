@@ -3,6 +3,9 @@ package com.basic.miniPjt5.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "posts")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,8 +26,8 @@ public class Post extends BaseEntity {
     @Column(name = "post_title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "post_content", nullable = false, length = 255)
-    private String content;
+    @Column(name = "post_body", nullable = false, length = 255)
+    private String body;
 
     @Column(name = "post_image_url")
     private String imageUrl;
@@ -40,4 +43,8 @@ public class Post extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 }
