@@ -1,4 +1,4 @@
-package com.basic.miniPjt5.auth.dto;
+package com.basic.miniPjt5.DTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,11 +15,11 @@ public class KakaoUserInfo {
     @JsonProperty("kakao_account")
     private KakaoAccount kakaoAccount;
 
+    @JsonProperty("properties")
+    private Properties properties;
+
     public String getName() {
-        if (kakaoAccount != null && kakaoAccount.profile != null) {
-            return kakaoAccount.profile.getName();
-        }
-        return null;
+        return properties != null ? properties.getNickname() : null;
     }
 
     public String getEmail() {
@@ -34,6 +34,17 @@ public class KakaoUserInfo {
             return kakaoAccount.profile.getProfileImageUrl();
         }
         return null;
+    }
+
+    // ✅ toString() 추가
+    @Override
+    public String toString() {
+        return "KakaoUserInfo{" +
+                "id=" + id +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", profileImageUrl='" + getProfileImageUrl() + '\'' +
+                '}';
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,5 +74,12 @@ public class KakaoUserInfo {
 
         @JsonProperty("profile_image_url")
         private String profileImageUrl;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    @NoArgsConstructor
+    public static class Properties {
+        private String nickname;
     }
 }

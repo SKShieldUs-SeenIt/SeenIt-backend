@@ -1,9 +1,12 @@
-package com.basic.miniPjt5.auth.dto;
+package com.basic.miniPjt5.DTO;
 
 import lombok.Getter;
 import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 
+@Data
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
