@@ -17,3 +17,5 @@ public class KakaoLoginResponse {
     private String name;
     private String email;
 }
+
+

@@ -11,11 +11,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "user", indexes = {
+@Table(name = "users", indexes = {
         @Index(name = "idx_kakao_id", columnList = "kakao_id"),
         @Index(name = "idx_email", columnList = "email"),
         @Index(name = "idx_status", columnList = "status")

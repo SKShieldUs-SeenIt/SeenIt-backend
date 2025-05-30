@@ -26,4 +26,3 @@ public abstract class BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") // JSON 직렬화 포맷
     private LocalDateTime updatedAt;
 }
-
