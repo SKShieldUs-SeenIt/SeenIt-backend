@@ -1,7 +1,7 @@
 package com.basic.miniPjt5;
 
-import com.basic.miniPjt5.DTO.TMDBMovie;
-import com.basic.miniPjt5.DTO.TMDBMovieResponse;
+import com.basic.miniPjt5.response.TMDBMovie;
+import com.basic.miniPjt5.response.TMDBMovieResponse;
 import com.basic.miniPjt5.config.TestConfig;
 import com.basic.miniPjt5.entity.Movie;
 import com.basic.miniPjt5.exception.TMDBApiException;
