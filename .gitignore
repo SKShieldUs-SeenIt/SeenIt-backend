@@ -119,4 +119,8 @@ src/main/resources/application-secret.properties
 =======
 ### VS Code ###
 .vscode/
+<<<<<<< HEAD
 >>>>>>> 4de31b1 (connect)
+=======
+>>>>>>> 4de31b1 (connect)
+>>>>>>> dev
