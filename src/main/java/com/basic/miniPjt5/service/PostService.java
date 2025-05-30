@@ -94,7 +94,7 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 수정할 수 있습니다.");
         }
 
@@ -170,7 +170,7 @@ public class PostService {
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-             throw new BusinessException(ErrorCode.FILE_DELETE_FAILED, "이미지 파일 삭제 실패" + filePath.toString() +", 오류: " + e.getMessage(), e);
+            throw new BusinessException(ErrorCode.FILE_DELETE_FAILED, "이미지 파일 삭제 실패" + filePath.toString() +", 오류: " + e.getMessage(), e);
         }
     }
 

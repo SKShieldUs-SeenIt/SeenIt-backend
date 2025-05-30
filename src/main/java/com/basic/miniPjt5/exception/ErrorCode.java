@@ -37,7 +37,6 @@ public enum ErrorCode {
     AUTH_ACCOUNT_LOCKED("AUTH_005", "계정이 잠겨있습니다", HttpStatus.FORBIDDEN),
 
     // 회원 관련 (40X)
-    USER_NOT_FOUND("USER_001", "회원을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     MEMBER_EMAIL_DUPLICATE("MEMBER_002", "이미 사용 중인 이메일입니다", HttpStatus.CONFLICT),
     MEMBER_SUSPENDED("MEMBER_003", "정지된 회원입니다", HttpStatus.FORBIDDEN),
     MEMBER_WITHDRAWN("MEMBER_004", "탈퇴한 회원입니다", HttpStatus.GONE),
