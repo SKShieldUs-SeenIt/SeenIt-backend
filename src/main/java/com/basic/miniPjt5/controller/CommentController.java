@@ -16,24 +16,39 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/posts/{postCode}/comments")
-    public ResponseEntity<List<CommentDTO.ListResponse>> getCommentsByPost(@PathVariable String postCode) {
-        List<CommentDTO.ListResponse> comments = commentService.getCommentsByPost(postCode);
+    public ResponseEntity<List<CommentDTO.Response>> getCommentsByPost(@PathVariable String postCode) {
+        List<CommentDTO.Response> comments = commentService.getCommentsByPost(postCode);
         return ResponseEntity.ok(comments);
     }
 
+//    @PostMapping("/posts/{postCode}/comments")
+//    public ResponseEntity<CommentDTO.Response> createComment(@Valid @ModelAttribute CommentDTO.createRequest request,
+//                                                             @AuthenticationPrincipal UserPrincipal userPrincipal,
+//                                                             @PathVariable String postCode) {
+//        CommentDTO.Response createComment= commentService.createComment(request, userPrincipal.getId(), postCode);
+//        return ResponseEntity.ok(createComment);
+//    }
+
     @PostMapping("/posts/{postCode}/comments")
     public ResponseEntity<CommentDTO.Response> createComment(@Valid @ModelAttribute CommentDTO.createRequest request,
-                                                             @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                             Long userId,
                                                              @PathVariable String postCode) {
-        CommentDTO.Response createComment= commentService.createComment(request, userPrincipal.getId(), postCode);
+        CommentDTO.Response createComment= commentService.createComment(request, userId, postCode);
         return ResponseEntity.ok(createComment);
     }
+//    @PutMapping("/comments/{id}")
+//    public ResponseEntity<CommentDTO.Response> updateComment(@Valid @ModelAttribute CommentDTO.updateRequest request,
+//                                                             @AuthenticationPrincipal UserPrincipal userPrincipal,
+//                                                             @PathVariable Long id) {
+//        CommentDTO.Response updateComment = commentService.updateComment(request, userPrincipal.getId(), id);
+//        return ResponseEntity.ok(updateComment);
+//    }
 
     @PutMapping("/comments/{id}")
     public ResponseEntity<CommentDTO.Response> updateComment(@Valid @ModelAttribute CommentDTO.updateRequest request,
-                                                             @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                             Long userId,
                                                              @PathVariable Long id) {
-        CommentDTO.Response updateComment = commentService.updateComment(request, userPrincipal.getId(), id);
+        CommentDTO.Response updateComment = commentService.updateComment(request, userId, id);
         return ResponseEntity.ok(updateComment);
     }
 
