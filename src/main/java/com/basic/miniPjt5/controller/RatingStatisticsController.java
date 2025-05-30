@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.RatingDTO;
+import com.basic.miniPjt5.security.JwtAuthenticationHelper;
 import com.basic.miniPjt5.service.RatingStatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class RatingStatisticsController {
 
     private final RatingStatisticsService statisticsService;
+    private final JwtAuthenticationHelper jwtAuthenticationHelper;
 
     // 영화 평점 통계 상세 조회
     @GetMapping("/movies/{movieId}")
@@ -40,10 +42,10 @@ public class RatingStatisticsController {
     public ResponseEntity<Page<RatingDTO.SimpleRating>> getTopRatedMovies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Pageable pageable = PageRequest.of(page, size);
         Page<RatingDTO.SimpleRating> topRatedMovies = statisticsService.getTopRatedMovies(pageable);
-        
+
         return ResponseEntity.ok(topRatedMovies);
     }
 
@@ -52,10 +54,10 @@ public class RatingStatisticsController {
     public ResponseEntity<Page<RatingDTO.SimpleRating>> getTopRatedDramas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Pageable pageable = PageRequest.of(page, size);
         Page<RatingDTO.SimpleRating> topRatedDramas = statisticsService.getTopRatedDramas(pageable);
-        
+
         return ResponseEntity.ok(topRatedDramas);
     }
 
@@ -63,7 +65,7 @@ public class RatingStatisticsController {
     @GetMapping("/recently-popular")
     public ResponseEntity<List<RatingDTO.SimpleRating>> getRecentlyPopularContents(
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         List<RatingDTO.SimpleRating> popularContents = statisticsService.getRecentlyPopularContents(limit);
         return ResponseEntity.ok(popularContents);
     }
@@ -77,20 +79,10 @@ public class RatingStatisticsController {
 
     // 개인 평점 통계 조회
     @GetMapping("/my")
-    public ResponseEntity<Map<String, Object>> getMyRatingStatistics(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        
-        Long userId = getUserId(userDetails);
+    public ResponseEntity<Map<String, Object>> getMyRatingStatistics() {
+        Long userId = jwtAuthenticationHelper.getCurrentUserId();
         Map<String, Object> userStats = statisticsService.getUserRatingStatistics(userId);
-        
-        return ResponseEntity.ok(userStats);
-    }
 
-    // UserDetails에서 사용자 ID 추출하는 헬퍼 메서드
-    private Long getUserId(UserDetails userDetails) {
-        if (userDetails instanceof CustomUserDetails) {
-            return ((CustomUserDetails) userDetails).getUserId();
-        }
-        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
+        return ResponseEntity.ok(userStats);
     }
 }

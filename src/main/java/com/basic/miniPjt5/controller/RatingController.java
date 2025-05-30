@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.RatingDTO;
+import com.basic.miniPjt5.security.CustomUserDetails;
 import com.basic.miniPjt5.service.RatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
