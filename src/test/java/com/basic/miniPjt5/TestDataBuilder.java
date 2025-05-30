@@ -1,9 +1,9 @@
 package com.basic.miniPjt5;
 
-import com.basic.miniPjt5.DTO.*;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
+import com.basic.miniPjt5.response.*;
 
 import java.util.List;
 

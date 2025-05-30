@@ -1,9 +1,7 @@
 package com.basic.miniPjt5.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
-import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Getter
@@ -27,4 +25,17 @@ public class KakaoTokenResponse {
 
     @JsonProperty("scope")
     private String scope;
+
+    // ✅ toString() 추가 (원하면 로그 찍을 때 활용 가능)
+    @Override
+    public String toString() {
+        return "KakaoTokenResponse{" +
+                "accessToken='" + accessToken + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", tokenType='" + tokenType + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", refreshTokenExpiresIn=" + refreshTokenExpiresIn +
+                ", scope='" + scope + '\'' +
+                '}';
+    }
 }

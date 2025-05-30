@@ -1,11 +1,11 @@
 package com.basic.miniPjt5.service;
 
-import com.basic.miniPjt5.DTO.*;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
 
 import com.basic.miniPjt5.repository.*;
+import com.basic.miniPjt5.response.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

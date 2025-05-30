@@ -1,5 +1,4 @@
-package com.basic.miniPjt5.DTO;
-
+package com.basic.miniPjt5.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
