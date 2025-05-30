@@ -5,6 +5,7 @@ import com.basic.miniPjt5.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +19,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    /**
+     * 비즈니스 예외 처리 (기존 코드)
+     */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
         log.warn("Business exception: {}", e.getMessage(), e);
@@ -34,8 +38,9 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(errorResponse);
     }
+
     /**
-     * Spring Validation 예외 처리
+     * Spring Validation 예외 처리 (기존 코드)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
@@ -63,7 +68,75 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 접근 거부 예외 처리
+     * Bind 예외 처리 (추가)
+     */
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ErrorResponse> handleBindException(BindException e) {
+        log.warn("Bind exception: {}", e.getMessage());
+
+        List<ErrorResponse.FieldError> fieldErrors = e.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> ErrorResponse.FieldError.builder()
+                        .field(fieldError.getField())
+                        .message(fieldError.getDefaultMessage())
+                        .rejectedValue(fieldError.getRejectedValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .error(ErrorResponse.ErrorDetail.builder()
+                        .code(ErrorCode.VALIDATION_ERROR.getCode())
+                        .message(ErrorCode.VALIDATION_ERROR.getMessage())
+                        .fieldErrors(fieldErrors)
+                        .build())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    /**
+     * IllegalArgumentException 처리 (추가)
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("IllegalArgumentException: {}", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .error(ErrorResponse.ErrorDetail.builder()
+                        .code("BAD_REQUEST")
+                        .message(e.getMessage())
+                        .detail("잘못된 요청입니다.")
+                        .build())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    /**
+     * IllegalStateException 처리 (추가)
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        log.warn("IllegalStateException: {}", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .error(ErrorResponse.ErrorDetail.builder()
+                        .code("CONFLICT")
+                        .message(e.getMessage())
+                        .detail("요청을 처리할 수 없는 상태입니다.")
+                        .build())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * 접근 거부 예외 처리 (기존 코드)
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
@@ -82,7 +155,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 일반 예외 처리
+     * 일반 예외 처리 (기존 코드)
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {

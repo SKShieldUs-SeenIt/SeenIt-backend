@@ -1,7 +1,7 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
-import com.basic.miniPjt5.auth.repository.UserRepository;
+import com.basic.miniPjt5.repository.UserRepository;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.exception.BusinessException;

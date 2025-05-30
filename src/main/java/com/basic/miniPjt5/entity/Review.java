@@ -9,8 +9,12 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "reviews")
-public class Review extends BaseEntity {  // BaseEntity 상속 (created_at, updated_at 등)
+@Table(name = "reviews", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_movie_id", columnList = "movie_id"),
+        @Index(name = "idx_drama_id", columnList = "drama_id")
+})
+public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +23,6 @@ public class Review extends BaseEntity {  // BaseEntity 상속 (created_at, upda
 
     @Column(nullable = false, length = 2000)
     private String content;  // 리뷰 내용
-
-    @Column(nullable = false)
-    private Double rating;   // 별점 (1.0 ~ 5.0)
 
     // 영화와의 관계 (선택적 - 영화 또는 드라마 중 하나)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,5 +46,14 @@ public class Review extends BaseEntity {  // BaseEntity 상속 (created_at, upda
 
     public boolean isDramaReview() {
         return drama != null;
+    }
+
+    // 데이터 검증 메서드
+    @PrePersist
+    @PreUpdate
+    private void validateContent() {
+        if ((movie == null && drama == null) || (movie != null && drama != null)) {
+            throw new IllegalStateException("영화 또는 드라마 중 하나만 선택해야 합니다.");
+        }
     }
 }

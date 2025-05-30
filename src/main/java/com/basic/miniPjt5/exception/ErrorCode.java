@@ -8,6 +8,27 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
+    // 리뷰 관련 에러코드
+    REVIEW_NOT_FOUND("REVIEW_404", "리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    REVIEW_ALREADY_EXISTS("REVIEW_409", "이미 해당 작품에 리뷰를 작성했습니다.", HttpStatus.CONFLICT),
+    REVIEW_ACCESS_DENIED("REVIEW_403", "리뷰를 수정/삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    REVIEW_CONTENT_INVALID("REVIEW_400", "리뷰 내용이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+
+    // 별점 관련 에러코드
+    RATING_NOT_FOUND("RATING_404", "별점을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    RATING_ALREADY_EXISTS("RATING_409", "이미 해당 작품에 별점을 주었습니다.", HttpStatus.CONFLICT),
+    RATING_ACCESS_DENIED("RATING_403", "별점을 수정/삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    RATING_SCORE_INVALID("RATING_400", "별점은 1~10 사이의 값이어야 합니다.", HttpStatus.BAD_REQUEST),
+
+    // 작품 관련 에러코드
+    MOVIE_NOT_FOUND("MOVIE_404", "영화를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DRAMA_NOT_FOUND("DRAMA_404", "드라마를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    CONTENT_TYPE_INVALID("CONTENT_400", "영화 또는 드라마 중 하나만 선택해야 합니다.", HttpStatus.BAD_REQUEST),
+
+    // 사용자 관련 에러코드
+    USER_NOT_FOUND("USER_404", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    USER_NOT_AUTHENTICATED("USER_401", "인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED),
+
     // 인증/인가 관련 (40X)
     AUTH_INVALID_CREDENTIALS("AUTH_001", "이메일 또는 비밀번호가 올바르지 않습니다", HttpStatus.UNAUTHORIZED),
     AUTH_TOKEN_EXPIRED("AUTH_002", "토큰이 만료되었습니다", HttpStatus.UNAUTHORIZED),
