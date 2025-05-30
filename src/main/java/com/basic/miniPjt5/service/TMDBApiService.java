@@ -1,8 +1,8 @@
 package com.basic.miniPjt5.service;
 
-import com.basic.miniPjt5.DTO.TMDBGenreResponse;
-import com.basic.miniPjt5.DTO.TMDBMovieResponse;
-import com.basic.miniPjt5.DTO.TMDBTVResponse;
+import com.basic.miniPjt5.response.TMDBGenreResponse;
+import com.basic.miniPjt5.response.TMDBMovieResponse;
+import com.basic.miniPjt5.response.TMDBTVResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
