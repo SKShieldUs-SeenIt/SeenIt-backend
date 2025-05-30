@@ -19,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 활성 상태 사용자 조회
     Optional<User> findByKakaoIdAndStatus(String kakaoId, UserStatus status);
+  
+  
+    Optional<User> findByKakaoId(String kakaoId);
 }

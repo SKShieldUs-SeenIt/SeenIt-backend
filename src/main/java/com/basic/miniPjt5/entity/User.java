@@ -11,10 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
-
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -30,7 +30,7 @@ public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long id;
+    private Long userId;
 
     @Column(name = "kakao_id", nullable = false, unique = true)
     private String kakaoId;
@@ -46,40 +46,23 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserStatus status = UserStatus.ACTIVE;
+    private UserStatus status;
 
     @Column(name = "preferred_genres", length = 255)
     private String preferredGenres;
 
     @Column(name = "join_date", nullable = false)
-    private LocalDate joinDate = LocalDate.now();
+    private LocalDate joinDate;
 
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
-    // 연관 관계 설정
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Review> reviews = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Post> posts = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Rating> ratings = new ArrayList<>();
-
-    /**
-     * 사용자 상태 확인
-     */
+    // 상태 확인
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
 
-    /**
-     * 사용자 상태 변경
-     */
+    // 상태 변경
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;
@@ -87,39 +70,39 @@ public class User extends BaseEntity {
         }
     }
 
-    /**
-     * 사용자 프로필 수정
-     */
+    // 프로필 업데이트
     public void updateProfile(String name, String profileImageUrl, String preferredGenres) {
         if (StringUtils.hasText(name)) this.name = name;
         if (StringUtils.hasText(profileImageUrl)) this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres;
     }
 
-    /**
-     * Builder
-     */
+    // 빌더
     @Builder
-    private User(String kakaoId, String name, String email, String profileImageUrl, String preferredGenres) {
+    private User(Long userId, String kakaoId, String name, String email,
+                 String profileImageUrl, String preferredGenres,
+                 UserStatus status, LocalDate joinDate) {
+        this.userId = userId;
         this.kakaoId = kakaoId;
         this.name = name;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres;
-        this.status = UserStatus.ACTIVE;
-        this.joinDate = LocalDate.now();
+        this.status = status != null ? status : UserStatus.ACTIVE;
+        this.joinDate = joinDate != null ? joinDate : LocalDate.now();
     }
 
-    /**
-     * 팩토리 메서드
-     */
-    public static User create(String kakaoId, String name, String email, String profileImageUrl, String preferredGenres) {
+    // 정적 팩토리 메서드
+    public static User create(String kakaoId, String name, String email,
+                              String profileImageUrl, String preferredGenres) {
         return User.builder()
                 .kakaoId(kakaoId)
                 .name(name)
                 .email(email)
                 .profileImageUrl(profileImageUrl)
                 .preferredGenres(preferredGenres)
+                .status(UserStatus.ACTIVE)
+                .joinDate(LocalDate.now())
                 .build();
     }
 }

@@ -1,22 +1,17 @@
-<<<<<<< HEAD
-# 민감한 설정 파일들
-application-secret.properties
-application-local.properties
-application-test.properties
-*.secret.properties
 
-# 환경별 설정 파일 (필요시)
-application-production.properties
-
-# Maven
-=======
 HELP.md
->>>>>>> 4de31b1 (connect)
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# 민감한 설정 파일들
+application-secret.properties
+application-local.properties
+application-test.properties
+*.secret.properties
+# 환경별 설정 파일 (필요시)
+application-production.properties
 ### STS ###
 .apt_generated
 .classpath
@@ -99,4 +94,6 @@ config-override.properties
 application-override.properties
 # secrets
 src/main/resources/application-secret.properties
+
+.vscode/
 

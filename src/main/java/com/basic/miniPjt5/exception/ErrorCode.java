@@ -37,7 +37,7 @@ public enum ErrorCode {
     AUTH_ACCOUNT_LOCKED("AUTH_005", "계정이 잠겨있습니다", HttpStatus.FORBIDDEN),
 
     // 회원 관련 (40X)
-    MEMBER_NOT_FOUND("MEMBER_001", "회원을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
+    USER_NOT_FOUND("USER_001", "회원을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     MEMBER_EMAIL_DUPLICATE("MEMBER_002", "이미 사용 중인 이메일입니다", HttpStatus.CONFLICT),
     MEMBER_SUSPENDED("MEMBER_003", "정지된 회원입니다", HttpStatus.FORBIDDEN),
     MEMBER_WITHDRAWN("MEMBER_004", "탈퇴한 회원입니다", HttpStatus.GONE),
@@ -51,7 +51,11 @@ public enum ErrorCode {
     //Post 관련(40X)
     POST_NOT_FOUND("POST_001", "게시글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     POST_CODE_DUPLICATE("POST_002","이미 사용 중인 게시글 코드입니다", HttpStatus.CONFLICT),
-    POST_ACCESS_DENIED("AUTH_004", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
+    POST_ACCESS_DENIED("POST_003", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
+
+    //댓글 관련(40X)
+    COMMENT_NOT_FOUND("COMMENT_001", "댓글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
+    COMMENT_ACCESS_DENIED ("COMMENT_002", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
 
     // 대출 관련 (40X)
     LOAN_NOT_FOUND("LOAN_001", "대출 정보를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
