@@ -25,7 +25,7 @@ public class PostDTO {
 
         @NotBlank(message = "내용은 필수 입력사항 입니다.")
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
-        private String content;
+        private String body;
 
         private MultipartFile image;
 
@@ -38,14 +38,13 @@ public class PostDTO {
         public Post toEntity(String imageUrl, User user) {
             return Post.builder()
                     .title(title)
-                    .content(content)
+                    .body(body)
                     .imageUrl(imageUrl)
                     .contentType(contentType)
                     .contentId(contentId)
                     .user(user)
                     .build();
         }
-
     }
 
     @Data
@@ -59,7 +58,7 @@ public class PostDTO {
 
         @NotBlank(message = "내용은 필수 입력사항 입니다.")
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
-        private String content;
+        private String body;
 
         private MultipartFile image;
 
@@ -75,7 +74,7 @@ public class PostDTO {
         private Long id;
         private String code;
         private String title;
-        private String content;
+        private String body;
         private String imageUrl;
         private String contentType;
         private Long contentId;
@@ -86,7 +85,7 @@ public class PostDTO {
                     .id(post.getId())
                     .code(post.getCode())
                     .title(post.getTitle())
-                    .content(post.getContent())
+                    .body(post.getBody())
                     .contentType(post.getContentType())
                     .contentId(post.getContentId())
                     .user(UserDTO.SimpleResponse.fromEntity(post.getUser()))
@@ -102,7 +101,7 @@ public class PostDTO {
         private Long id;
         private String code;
         private String title;
-        private String content;
+        private String body;
         private String imageUrl;
         private String contentType;
         private Long contentId;
@@ -115,7 +114,7 @@ public class PostDTO {
                     .id(post.getId())
                     .code(post.getCode())
                     .title(post.getTitle())
-                    .content(post.getContent())
+                    .body(post.getBody())
                     .contentType(post.getContentType())
                     .contentId(post.getContentId())
                     .createdAt(post.getCreatedAt())

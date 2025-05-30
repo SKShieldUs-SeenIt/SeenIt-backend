@@ -23,8 +23,8 @@ public class Post extends BaseEntity {
     @Column(name = "post_title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "post_content", nullable = false, length = 255)
-    private String content;
+    @Column(name = "post_body", nullable = false, length = 255)
+    private String body;
 
     @Column(name = "post_image_url")
     private String imageUrl;

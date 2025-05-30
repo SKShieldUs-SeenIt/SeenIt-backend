@@ -17,13 +17,23 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
+    //전체 게시글 조회
     @GetMapping
     public ResponseEntity<List<PostDTO.ListResponse>> getAllPost(){
         List<PostDTO.ListResponse> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/{id}")
+    // /api/posts/content?type=MOVIE&id=1 요청
+    //content 한개당 관련 게시글 조회
+    @GetMapping("/content")
+    public ResponseEntity<List<PostDTO.ListResponse>> getPostsByContent(@RequestParam("type") String contentType,
+                                                                        @RequestParam("id") Long contentId){
+        List<PostDTO.ListResponse> posts = postService.getPostsByContent(contentType, contentId);
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("detail/{id}")
     public ResponseEntity<PostDTO.Response> getPostById(@PathVariable Long id){
         PostDTO.Response post = postService.getPostById(id);
         return ResponseEntity.ok(post);
@@ -35,7 +45,8 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    @PostMapping(value = "/create/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //input type hidden으로 contentType, contentId
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> createPost(@Valid @ModelAttribute PostDTO.createRequest request,
                                                        @AuthenticationPrincipal UserPrincipal userPrincipal){
         PostDTO.Response createPost = postService.createPost(request, userPrincipal.getId());
