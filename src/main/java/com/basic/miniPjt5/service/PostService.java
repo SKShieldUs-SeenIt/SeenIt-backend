@@ -1,10 +1,12 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
+import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
+import com.basic.miniPjt5.repository.CommentRepository;
 import com.basic.miniPjt5.repository.PostRepository;
 import com.basic.miniPjt5.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +94,7 @@ public class PostService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!post.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "작성자만 수정할 수 있습니다.");
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 수정할 수 있습니다.");
         }
 
         if(request.getTitle() == null)

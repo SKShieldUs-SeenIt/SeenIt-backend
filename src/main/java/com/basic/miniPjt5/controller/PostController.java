@@ -33,13 +33,13 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("detail/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<PostDTO.Response> getPostById(@PathVariable Long id){
         PostDTO.Response post = postService.getPostById(id);
         return ResponseEntity.ok(post);
     }
 
-    @GetMapping("/detail/{code}")
+    @GetMapping("/{code}")
     public ResponseEntity<PostDTO.Response> getPostByCode(@PathVariable String code){
         PostDTO.Response post = postService.getPostByCode(code);
         return ResponseEntity.ok(post);
