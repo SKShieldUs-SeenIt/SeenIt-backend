@@ -1,12 +1,14 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
-import com.basic.miniPjt5.auth.repository.UserRepository;
+import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
+import com.basic.miniPjt5.repository.CommentRepository;
 import com.basic.miniPjt5.repository.PostRepository;
+import com.basic.miniPjt5.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,13 @@ public class PostService {
                 .toList();
     }
 
+    public List<PostDTO.ListResponse> getPostsByContent(String contentType, Long contentId){
+        return postRepository.findPostsByContent(contentType, contentId)
+                .stream()
+                .map(PostDTO.ListResponse::fromEntity)
+                .toList();
+    }
+
     public PostDTO.Response getPostById(Long id){
         Post post = postRepository.findById(id)
                 .orElseThrow(()->new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -60,7 +69,7 @@ public class PostService {
         if(request.getTitle() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "제목을 입력해주세요");
 
-        if(request.getContent() == null)
+        if(request.getBody() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "내용을 입력해주세요");
 
         String postCode = generateCode();
@@ -85,13 +94,13 @@ public class PostService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!post.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "작성자만 수정할 수 있습니다.");
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 수정할 수 있습니다.");
         }
 
         if(request.getTitle() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "제목을 입력해주세요");
 
-        if(request.getContent() == null)
+        if(request.getBody() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "내용을 입력해주세요");
 
         String newImageUrl = null;
@@ -112,7 +121,7 @@ public class PostService {
         }
 
         post.setTitle(request.getTitle());
-        post.setContent(request.getContent());
+        post.setBody(request.getBody());
         post.setImageUrl(newImageUrl);
 
         Post updatedPost = postRepository.save(post);
