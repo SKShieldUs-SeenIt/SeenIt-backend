@@ -45,19 +45,35 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    //input type hidden으로 contentType, contentId
+//    //input type hidden으로 contentType, contentId
+//    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<PostDTO.Response> createPost(@Valid @ModelAttribute PostDTO.createRequest request,
+//                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
+//        PostDTO.Response createPost = postService.createPost(request, userPrincipal.getId());
+//        return ResponseEntity.ok(createPost);
+//    }
+
+//    input type hidden으로 contentType, contentId
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> createPost(@Valid @ModelAttribute PostDTO.createRequest request,
-                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
-        PostDTO.Response createPost = postService.createPost(request, userPrincipal.getId());
+                                                       @RequestParam("userId")Long userId){
+        PostDTO.Response createPost = postService.createPost(request, userId);
         return ResponseEntity.ok(createPost);
     }
 
+//    @PutMapping(value = "/update/{code}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<PostDTO.Response> updatePost(@PathVariable String code,
+//                                                        @Valid @ModelAttribute PostDTO.updateRequest request,
+//                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
+//        PostDTO.Response updatedPost = postService.updatePost(code, request, userPrincipal.getId());
+//        return ResponseEntity.ok(updatedPost);
+//    }
+
     @PutMapping(value = "/update/{code}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> updatePost(@PathVariable String code,
-                                                        @Valid @ModelAttribute PostDTO.updateRequest request,
-                                                       @AuthenticationPrincipal UserPrincipal userPrincipal){
-        PostDTO.Response updatedPost = postService.updatePost(code, request, userPrincipal.getId());
+                                                       @Valid @ModelAttribute PostDTO.updateRequest request,
+                                                       @RequestParam("userId")Long userId){
+        PostDTO.Response updatedPost = postService.updatePost(code, request, userId);
         return ResponseEntity.ok(updatedPost);
     }
 
