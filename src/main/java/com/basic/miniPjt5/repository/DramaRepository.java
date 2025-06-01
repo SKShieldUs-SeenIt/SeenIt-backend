@@ -21,6 +21,10 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     @Query("SELECT d FROM Drama d WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%'))")
     List<Drama> findByTitleContainingIgnoreCase(@Param("title") String title);
 
+    // 페이징 지원 제목 검색
+    @Query("SELECT d FROM Drama d WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+    Page<Drama> findByTitleContainingIgnoreCase(@Param("title") String title, Pageable pageable);
+
     List<Drama> findByTitleContaining(String title);
 
     // 평점 기준 정렬
@@ -37,8 +41,15 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
 
     // 시즌 수 기준 검색
     List<Drama> findByNumberOfSeasonsGreaterThan(Integer seasons);
+    Page<Drama> findByNumberOfSeasonsBetween(Integer minSeasons, Integer maxSeasons, Pageable pageable);
 
-    // 페이징
-    Page<Drama> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+    // 페이징 지원 메서드들
     Page<Drama> findByGenres_Id(Long genreId, Pageable pageable);
+
+    // 여러 장르 검색
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE g.id IN :genreIds")
+    Page<Drama> findByGenres_IdIn(@Param("genreIds") List<Long> genreIds, Pageable pageable);
+
+    // 평점 범위 검색
+    Page<Drama> findByVoteAverageBetween(Double minRating, Double maxRating, Pageable pageable);
 }

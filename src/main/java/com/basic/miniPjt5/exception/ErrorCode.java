@@ -8,25 +8,66 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    // 리뷰 관련 에러코드
-    REVIEW_NOT_FOUND("REVIEW_404", "리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    REVIEW_ALREADY_EXISTS("REVIEW_409", "이미 해당 작품에 리뷰를 작성했습니다.", HttpStatus.CONFLICT),
-    REVIEW_ACCESS_DENIED("REVIEW_403", "리뷰를 수정/삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    REVIEW_CONTENT_INVALID("REVIEW_400", "리뷰 내용이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+    // 공통 에러
+    INVALID_INPUT_VALUE("C002", "잘못된 입력값입니다.", HttpStatus.BAD_REQUEST),
+    METHOD_NOT_ALLOWED("C003", "허용되지 않은 HTTP 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),
+    ENTITY_NOT_FOUND("C004", "엔티티를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_TYPE_VALUE("C005", "잘못된 타입 값입니다.", HttpStatus.BAD_REQUEST),
+    ACCESS_DENIED("C006", "접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
 
-    // 별점 관련 에러코드
-    RATING_NOT_FOUND("RATING_404", "별점을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    RATING_ALREADY_EXISTS("RATING_409", "이미 해당 작품에 별점을 주었습니다.", HttpStatus.CONFLICT),
-    RATING_ACCESS_DENIED("RATING_403", "별점을 수정/삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    RATING_SCORE_INVALID("RATING_400", "별점은 1~10 사이의 값이어야 합니다.", HttpStatus.BAD_REQUEST),
+    // 사용자 관련 에러
+    USER_NOT_FOUND("U001", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    USER_ALREADY_EXISTS("U002", "이미 존재하는 사용자입니다.", HttpStatus.CONFLICT),
+    USER_ACCESS_DENIED("U003", "사용자 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
+    INVALID_PASSWORD("U004", "잘못된 비밀번호입니다.", HttpStatus.BAD_REQUEST),
 
-    // 작품 관련 에러코드
-    MOVIE_NOT_FOUND("MOVIE_404", "영화를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    DRAMA_NOT_FOUND("DRAMA_404", "드라마를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    CONTENT_TYPE_INVALID("CONTENT_400", "영화 또는 드라마 중 하나만 선택해야 합니다.", HttpStatus.BAD_REQUEST),
+    // 영화 관련 에러
+    MOVIE_NOT_FOUND("M001", "영화를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    MOVIE_ALREADY_EXISTS("M002", "이미 존재하는 영화입니다.", HttpStatus.CONFLICT),
+    MOVIE_ACCESS_DENIED("M003", "영화 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
 
-    // 사용자 관련 에러코드
-    USER_NOT_FOUND("USER_404", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    // 드라마 관련 에러
+    DRAMA_NOT_FOUND("D001", "드라마를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DRAMA_ALREADY_EXISTS("D002", "이미 존재하는 드라마입니다.", HttpStatus.CONFLICT),
+    DRAMA_ACCESS_DENIED("D003", "드라마 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
+
+    // 장르 관련 에러
+    GENRE_NOT_FOUND("G001", "장르를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    GENRE_ALREADY_EXISTS("G002", "이미 존재하는 장르입니다.", HttpStatus.CONFLICT),
+    GENRE_HAS_CONTENT("G003", "연관된 컨텐츠가 있어 삭제할 수 없습니다.", HttpStatus.CONFLICT),
+
+    // 리뷰 관련 에러
+    REVIEW_NOT_FOUND("R001", "리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    REVIEW_ALREADY_EXISTS("R002", "이미 리뷰를 작성하셨습니다.", HttpStatus.CONFLICT),
+    REVIEW_ACCESS_DENIED("R003", "리뷰 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
+    REVIEW_CONTENT_INVALID("R004", "리뷰 내용이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+
+    // 별점 관련 에러
+    RATING_NOT_FOUND("RT001", "별점을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    RATING_ALREADY_EXISTS("RT002", "이미 별점을 등록하셨습니다.", HttpStatus.CONFLICT),
+    RATING_ACCESS_DENIED("RT003", "별점 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
+    RATING_SCORE_INVALID("RT004", "별점은 1~10 사이여야 합니다.", HttpStatus.BAD_REQUEST),
+
+    // 컨텐츠 관련 에러
+    CONTENT_TYPE_INVALID("CT001", "컨텐츠 타입이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    CONTENT_NOT_FOUND("CT002", "컨텐츠를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // TMDB API 관련 에러
+    TMDB_API_ERROR("T001", "TMDB API 호출에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE),
+    TMDB_API_RATE_LIMIT("T002", "TMDB API 호출 한도를 초과했습니다.", HttpStatus.TOO_MANY_REQUESTS),
+    TMDB_DATA_NOT_FOUND("T003", "TMDB에서 데이터를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // 인증/인가 관련 에러
+    UNAUTHORIZED("A001", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
+    TOKEN_INVALID("A002", "유효하지 않은 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    TOKEN_EXPIRED("A003", "만료된 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    INSUFFICIENT_PERMISSION("A004", "권한이 부족합니다.", HttpStatus.FORBIDDEN),
+
+    // 파일 관련 에러
+    FILE_UPLOAD_ERROR("F001", "파일 업로드에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    FILE_SIZE_EXCEEDED("F002", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE("F003", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
+
     USER_NOT_AUTHENTICATED("USER_401", "인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED),
 
     // 인증/인가 관련 (40X)
@@ -55,23 +96,6 @@ public enum ErrorCode {
     //댓글 관련(40X)
     COMMENT_NOT_FOUND("COMMENT_001", "댓글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     COMMENT_ACCESS_DENIED ("COMMENT_002", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
-
-    // 대출 관련 (40X)
-    LOAN_NOT_FOUND("LOAN_001", "대출 정보를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
-    LOAN_EXCEED_LIMIT("LOAN_002", "최대 대출 권수를 초과했습니다", HttpStatus.BAD_REQUEST),
-    LOAN_MEMBER_OVERDUE("LOAN_003", "연체 중인 도서가 있어 대출할 수 없습니다", HttpStatus.BAD_REQUEST),
-    LOAN_ALREADY_BORROWED("LOAN_004", "이미 대출 중인 도서입니다", HttpStatus.CONFLICT),
-    LOAN_INVALID_STATUS("LOAN_005", "잘못된 대출 상태입니다", HttpStatus.BAD_REQUEST),
-    LOAN_CANNOT_RETURN("LOAN_006", "반납할 수 없는 상태입니다", HttpStatus.BAD_REQUEST),
-
-    // 예약 관련 (40X)
-    RESERVATION_NOT_FOUND("RESERVATION_001", "예약 정보를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
-    RESERVATION_DUPLICATE("RESERVATION_002", "이미 예약한 도서입니다", HttpStatus.CONFLICT),
-    RESERVATION_LIMIT_EXCEEDED("RESERVATION_003", "예약 한도를 초과했습니다", HttpStatus.BAD_REQUEST),
-
-    // 카테고리 관련 (40X)
-    CATEGORY_NOT_FOUND("CATEGORY_001", "카테고리를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
-    CATEGORY_HAS_BOOKS("CATEGORY_002", "도서가 등록된 카테고리는 삭제할 수 없습니다", HttpStatus.CONFLICT),
 
     // 검증 관련 (40X)
     VALIDATION_ERROR("VALID_001", "입력값이 올바르지 않습니다", HttpStatus.BAD_REQUEST),

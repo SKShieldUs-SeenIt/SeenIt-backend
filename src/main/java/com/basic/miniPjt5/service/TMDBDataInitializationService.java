@@ -38,6 +38,21 @@ public class TMDBDataInitializationService {
         this.dramaRepository = dramaRepository;
     }
 
+    public ContentSimpleDTO getContentSummary(ContentType contentType, Long contentId) {
+        switch (contentType) {
+            case MOVIE:
+                Movie movie = movieRepository.findById(contentId)
+                        .orElseThrow(() -> new RuntimeException("Movie not found"));
+                return ContentSimpleDTO.fromMovie(movie);
+            case DRAMA:
+                Drama drama = dramaRepository.findById(contentId)
+                        .orElseThrow(() -> new RuntimeException("Drama not found"));
+                return ContentSimpleDTO.fromDrama(drama);
+            default:
+                throw new IllegalArgumentException("Unknown content type");
+        }
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void initializeData() {
         try {

@@ -21,4 +21,11 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {  // ✅ Jp
 
     @Query("SELECT COUNT(d) FROM Drama d JOIN d.genres g WHERE g.id = :genreId")
     Long countDramasByGenreId(@Param("genreId") Long genreId);
+
+    // 장르별 평균 평점 조회
+    @Query("SELECT AVG(m.voteAverage) FROM Movie m JOIN m.genres g WHERE g.id = :genreId")
+    Double getAverageMovieRatingByGenreId(@Param("genreId") Long genreId);
+
+    @Query("SELECT AVG(d.voteAverage) FROM Drama d JOIN d.genres g WHERE g.id = :genreId")
+    Double getAverageDramaRatingByGenreId(@Param("genreId") Long genreId);
 }

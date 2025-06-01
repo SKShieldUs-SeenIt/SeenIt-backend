@@ -13,32 +13,34 @@ import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    
-    // 특정 영화의 리뷰 목록 조회 (페이징)
+
+    // 영화별 리뷰 조회
     Page<Review> findByMovieIdOrderByCreatedAtDesc(Long movieId, Pageable pageable);
-    
-    // 특정 드라마의 리뷰 목록 조회 (페이징)
+    List<Review> findByMovieId(Long movieId);
+
+    // 드라마별 리뷰 조회
     Page<Review> findByDramaIdOrderByCreatedAtDesc(Long dramaId, Pageable pageable);
-    
-    // 특정 사용자의 리뷰 목록 조회 (페이징)
+    List<Review> findByDramaId(Long dramaId);
+
+    // 사용자별 리뷰 조회
     Page<Review> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-    
-    // 특정 사용자가 특정 영화에 작성한 리뷰 조회
+    List<Review> findByUserId(Long userId);
+
+    // 중복 리뷰 확인
     Optional<Review> findByUserIdAndMovieId(Long userId, Long movieId);
-    
-    // 특정 사용자가 특정 드라마에 작성한 리뷰 조회
     Optional<Review> findByUserIdAndDramaId(Long userId, Long dramaId);
-    
-    // 특정 영화의 리뷰 개수 조회
-    long countByMovieId(Long movieId);
-    
-    // 특정 드라마의 리뷰 개수 조회
-    long countByDramaId(Long dramaId);
-    
-    // 최신 리뷰 목록 조회 (전체)
+
+    // 최근 리뷰 조회
     @Query("SELECT r FROM Review r ORDER BY r.createdAt DESC")
     Page<Review> findLatestReviews(Pageable pageable);
-    
+
+    // 컨텐츠별 리뷰 수 조회
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.movie.id = :movieId")
+    Long countByMovieId(@Param("movieId") Long movieId);
+
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.drama.id = :dramaId")
+    Long countByDramaId(@Param("dramaId") Long dramaId);
+
     // 특정 사용자가 작성한 리뷰인지 확인
     boolean existsByIdAndUserId(Long reviewId, Long userId);
 }
