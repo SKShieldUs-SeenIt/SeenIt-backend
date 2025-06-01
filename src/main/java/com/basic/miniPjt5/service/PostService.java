@@ -2,14 +2,11 @@ package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.repository.UserRepository;
-import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
-import com.basic.miniPjt5.repository.CommentRepository;
 import com.basic.miniPjt5.repository.PostRepository;
-import com.basic.miniPjt5.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

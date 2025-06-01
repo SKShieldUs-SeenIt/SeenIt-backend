@@ -1,5 +1,6 @@
 package com.basic.miniPjt5.entity;
 
+import com.basic.miniPjt5.enums.ContentType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,7 +36,7 @@ public class Post extends BaseEntity {
     //'MOVIE', 'DRAMA'
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type", length = 10, nullable = false)
-    private String contentType;
+    private ContentType contentType;
 
     @Column(name = "content_id", nullable = false)
     private Long contentId;

@@ -2,6 +2,7 @@ package com.basic.miniPjt5.DTO;
 
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.ContentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -12,7 +13,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class PostDTO {
     @Data
@@ -30,11 +30,9 @@ public class PostDTO {
 
         private MultipartFile image;
 
-        private String contentType;
+        private ContentType contentType;
 
         private Long contentId;
-
-        private User user;
 
         public Post toEntity(String imageUrl, User user) {
             return Post.builder()
@@ -77,7 +75,7 @@ public class PostDTO {
         private String title;
         private String body;
         private String imageUrl;
-        private String contentType;
+        private ContentType contentType;
         private Long contentId;
         private UserDTO.SimpleResponse user;
 
@@ -104,7 +102,7 @@ public class PostDTO {
         private String title;
         private String body;
         private String imageUrl;
-        private String contentType;
+        private ContentType contentType;
         private Long contentId;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
