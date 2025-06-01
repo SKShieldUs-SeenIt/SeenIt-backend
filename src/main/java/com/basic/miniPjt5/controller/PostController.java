@@ -1,12 +1,14 @@
 package com.basic.miniPjt5.controller;
 
+import com.basic.miniPjt5.DTO.ContentSimpleDTO;
 import com.basic.miniPjt5.DTO.PostDTO;
+import com.basic.miniPjt5.enums.ContentType;
 import com.basic.miniPjt5.service.PostService;
+import com.basic.miniPjt5.service.TMDBDataInitializationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
-
+    private final TMDBDataInitializationService tmdbDataInitializationService;
     //전체 게시글 조회
     @GetMapping
     public ResponseEntity<List<PostDTO.ListResponse>> getAllPost(){
@@ -82,4 +84,12 @@ public class PostController {
         postService.deletePost(code);
         return ResponseEntity.noContent().build();
     }
+
+    //MOVIE or DRAMA 관련 필요한 정보 조회
+    @GetMapping("/content/{contentType}/{contentId}")
+    public ResponseEntity<ContentSimpleDTO> getContentSummary(@PathVariable ContentType contentType, @PathVariable Long contentId) {
+        ContentSimpleDTO dto = tmdbDataInitializationService.getContentSummary(contentType, contentId);
+        return ResponseEntity.ok(dto);
+    }
+
 }
