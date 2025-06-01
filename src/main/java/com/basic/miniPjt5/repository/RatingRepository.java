@@ -14,44 +14,39 @@ import java.util.Optional;
 @Repository
 public interface RatingRepository extends JpaRepository<Rating, Long> {
 
-    // 특정 사용자가 특정 영화에 준 별점 조회
+    // 사용자별 특정 컨텐츠 별점 조회
     Optional<Rating> findByUserIdAndMovieId(Long userId, Long movieId);
-
-    // 특정 사용자가 특정 드라마에 준 별점 조회
     Optional<Rating> findByUserIdAndDramaId(Long userId, Long dramaId);
 
-    // 특정 영화의 평균 별점 조회
+    // 컨텐츠별 모든 별점 조회
+    List<Rating> findByMovieId(Long movieId);
+    List<Rating> findByDramaId(Long dramaId);
+    Page<Rating> findByMovieIdOrderByCreatedAtDesc(Long movieId, Pageable pageable);
+    Page<Rating> findByDramaIdOrderByCreatedAtDesc(Long dramaId, Pageable pageable);
+
+    // 사용자별 모든 별점 조회
+    List<Rating> findByUserId(Long userId);
+    Page<Rating> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    // 컨텐츠별 평균 별점 조회
     @Query("SELECT AVG(r.score) FROM Rating r WHERE r.movie.id = :movieId")
     Optional<Double> findAverageScoreByMovieId(@Param("movieId") Long movieId);
 
-    // 특정 드라마의 평균 별점 조회
     @Query("SELECT AVG(r.score) FROM Rating r WHERE r.drama.id = :dramaId")
     Optional<Double> findAverageScoreByDramaId(@Param("dramaId") Long dramaId);
 
-    // 특정 영화의 별점 개수 조회
-    long countByMovieId(Long movieId);
+    // 컨텐츠별 별점 수 조회
+    @Query("SELECT COUNT(r) FROM Rating r WHERE r.movie.id = :movieId")
+    Long countByMovieId(@Param("movieId") Long movieId);
 
-    // 특정 드라마의 별점 개수 조회
-    long countByDramaId(Long dramaId);
+    @Query("SELECT COUNT(r) FROM Rating r WHERE r.drama.id = :dramaId")
+    Long countByDramaId(@Param("dramaId") Long dramaId);
 
-    // 특정 영화의 별점 목록 조회 (페이징)
-    Page<Rating> findByMovieIdOrderByCreatedAtDesc(Long movieId, Pageable pageable);
-
-    // 특정 드라마의 별점 목록 조회 (페이징)
-    Page<Rating> findByDramaIdOrderByCreatedAtDesc(Long dramaId, Pageable pageable);
-
-    // 특정 사용자의 별점 목록 조회 (페이징)
-    Page<Rating> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-
-    // 특정 사용자가 작성한 별점인지 확인
-    boolean existsByIdAndUserId(Long ratingId, Long userId);
-
-    // 별점 분포 조회 (특정 영화)
-    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.movie.id = :movieId GROUP BY r.score ORDER BY r.score")
+    // 점수 분포 조회
+    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.movie.id = :movieId GROUP BY r.score")
     Object[][] findScoreDistributionByMovieId(@Param("movieId") Long movieId);
 
-    // 별점 분포 조회 (특정 드라마)
-    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.drama.id = :dramaId GROUP BY r.score ORDER BY r.score")
+    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.drama.id = :dramaId GROUP BY r.score")
     Object[][] findScoreDistributionByDramaId(@Param("dramaId") Long dramaId);
 
     // === 평점 통계 관련 추가 쿼리들 ===

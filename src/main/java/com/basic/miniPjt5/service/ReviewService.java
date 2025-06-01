@@ -69,7 +69,7 @@ public class ReviewService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
         // 작성자 확인
-        if (!review.getUser().getId().equals(userId)) {
+        if (!review.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
@@ -84,7 +84,7 @@ public class ReviewService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
         // 작성자 확인
-        if (!review.getUser().getId().equals(userId)) {
+        if (!review.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
@@ -165,7 +165,7 @@ public class ReviewService {
         dto.setId(review.getId());
         dto.setContent(review.getContent());
         dto.setUsername(review.getUser().getName());
-        dto.setUserId(review.getUser().getId());
+        dto.setUserId(review.getUser().getUserId());
 
         if (review.getMovie() != null) {
             dto.setMovieId(review.getMovie().getId());
