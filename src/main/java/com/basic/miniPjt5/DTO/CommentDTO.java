@@ -65,14 +65,25 @@ public class CommentDTO {
             //null이면(댓글일 때) true, not null이면(대댓글일 때) false
             boolean isParent = comment.getParentComment() == null;
 
+            // 1. parentCommentId 처리
+            Long parentCommentId = isParent ? null : comment.getParentComment().getId();
+
+            // 2. childComments 처리 로직
+            List<Response> childComments = Collections.emptyList();
+
+            if (isParent) {
+                if (comment.getChildComments() != null) { //대댓글이 있는 경우
+                    childComments = comment.getChildComments().stream()
+                            .map(Response::fromEntity)
+                            .collect(Collectors.toList());
+                }
+            }
+
             return Response.builder()
                     .id(comment.getId())
                     .content(comment.getContent())
-                    .parentCommentId(isParent ? null : comment.getParentComment().getId())
-                    .childComments(isParent ? comment.getChildComments().stream()
-                                    .map(Response::fromEntity)
-                                    .collect(Collectors.toList())
-                                    :Collections.emptyList())
+                    .parentCommentId(parentCommentId)
+                    .childComments(childComments)
                     .createdAt(comment.getCreatedAt())
                     .updatedAt(comment.getUpdatedAt())
                     .user(UserDTO.SimpleResponse.fromEntity(comment.getUser()))

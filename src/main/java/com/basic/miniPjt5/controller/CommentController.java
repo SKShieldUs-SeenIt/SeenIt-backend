@@ -31,7 +31,7 @@ public class CommentController {
 
     @PostMapping("/posts/{postCode}/comments")
     public ResponseEntity<CommentDTO.Response> createComment(@Valid @ModelAttribute CommentDTO.createRequest request,
-                                                             Long userId,
+                                                             @RequestParam("userId") Long userId,
                                                              @PathVariable String postCode) {
         CommentDTO.Response createComment= commentService.createComment(request, userId, postCode);
         return ResponseEntity.ok(createComment);
@@ -46,7 +46,7 @@ public class CommentController {
 
     @PutMapping("/comments/{id}")
     public ResponseEntity<CommentDTO.Response> updateComment(@Valid @ModelAttribute CommentDTO.updateRequest request,
-                                                             Long userId,
+                                                             @RequestParam("userId") Long userId,
                                                              @PathVariable Long id) {
         CommentDTO.Response updateComment = commentService.updateComment(request, userId, id);
         return ResponseEntity.ok(updateComment);
