@@ -1,5 +1,6 @@
 package com.basic.miniPjt5.service;
 
+import com.basic.miniPjt5.DTO.UserAdminResponse;
 import com.basic.miniPjt5.DTO.UserUpdateRequest;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.enums.UserStatus;
@@ -7,6 +8,8 @@ import com.basic.miniPjt5.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
