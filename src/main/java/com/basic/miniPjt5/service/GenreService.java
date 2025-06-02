@@ -2,6 +2,8 @@ package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.GenreDTO;
 import com.basic.miniPjt5.entity.Genre;
+import com.basic.miniPjt5.exception.BusinessException;
+import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.mapper.GenreMapper;
 import com.basic.miniPjt5.repository.DramaRepository;
 import com.basic.miniPjt5.repository.GenreRepository;
@@ -53,7 +55,7 @@ public class GenreService {
     // 장르 상세 조회
     public GenreDTO.Response getGenreById(Long id) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException(id));
+                .orElseThrow(() -> new BusinessException(ErrorCode.GENRE_NOT_FOUND));
 
         return genreMapper.toResponse(genre);
     }
@@ -62,7 +64,7 @@ public class GenreService {
     @Transactional
     public GenreDTO.Response createGenre(GenreDTO.CreateRequest request) {
         if (genreRepository.existsById(request.getId())) {
-            throw new DuplicateContentException("이미 존재하는 장르입니다: " + request.getId());
+            throw new BusinessException(ErrorCode.GENRE_ALREADY_EXISTS);
         }
 
         Genre genre = Genre.builder()
@@ -78,7 +80,7 @@ public class GenreService {
     @Transactional
     public GenreDTO.Response updateGenre(Long id, GenreDTO.UpdateRequest request) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException(id));
+                .orElseThrow(() -> new BusinessException(ErrorCode.GENRE_NOT_FOUND));
 
         genre.setName(request.getName());
 
@@ -90,7 +92,7 @@ public class GenreService {
     @Transactional
     public void deleteGenre(Long id) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException(id));
+                .orElseThrow(() -> new BusinessException(ErrorCode.GENRE_NOT_FOUND));
 
         // 연관된 영화나 드라마가 있는지 확인
         if (!genre.getMovies().isEmpty() || !genre.getDramas().isEmpty()) {
@@ -103,7 +105,7 @@ public class GenreService {
     // 장르 통계 조회
     public GenreDTO.Statistics getGenreStatistics(Long id) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException(id));
+                .orElseThrow(() -> new BusinessException(ErrorCode.GENRE_NOT_FOUND));
 
         int movieCount = genre.getMovies().size();
         int dramaCount = genre.getDramas().size();
@@ -150,7 +152,7 @@ public class GenreService {
     // 장르별 인기 컨텐츠 조회
     public GenreDTO.PopularContent getPopularContentByGenre(Long id, int limit) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException(id));
+                .orElseThrow(() ->  new BusinessException(ErrorCode.GENRE_NOT_FOUND));
 
         List<GenreDTO.MovieSummary> topMovies = genre.getMovies().stream()
                 .sorted((m1, m2) -> Double.compare(m2.getVoteAverage(), m1.getVoteAverage()))

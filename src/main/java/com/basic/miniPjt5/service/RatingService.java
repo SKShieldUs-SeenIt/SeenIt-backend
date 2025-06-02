@@ -88,7 +88,7 @@ public class RatingService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RATING_NOT_FOUND));
 
         // 작성자 확인
-        if (!rating.getUser().getId().equals(userId)) {
+        if (!rating.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
         }
 
@@ -116,10 +116,16 @@ public class RatingService {
         Double averageScore = ratingRepository.findAverageScoreByMovieId(movieId).orElse(0.0);
         Long ratingCount = ratingRepository.countByMovieId(movieId);
 
-        return new RatingDTO.AverageResponse(
-                movieId, "MOVIE", movie.getTitle(),
-                roundToTwoDecimals(averageScore), ratingCount
-        );
+        return RatingDTO.AverageResponse.builder()
+                .contentId(movieId)
+                .contentType("Movie")
+                .contentTitle(movie.getTitle())
+                .posterPath(movie.getPosterPath())
+                .averageScore(roundToTwoDecimals(averageScore))
+                .ratingCount(ratingCount)
+                .tmdbRating(movie.getVoteAverage())
+                .build();
+
     }
 
     // 드라마 평균 별점 조회
@@ -130,10 +136,15 @@ public class RatingService {
         Double averageScore = ratingRepository.findAverageScoreByDramaId(dramaId).orElse(0.0);
         Long ratingCount = ratingRepository.countByDramaId(dramaId);
 
-        return new RatingDTO.AverageResponse(
-                dramaId, "DRAMA", drama.getTitle(),
-                roundToTwoDecimals(averageScore), ratingCount
-        );
+        return RatingDTO.AverageResponse.builder()
+                .contentId(dramaId)
+                .contentType("DRAMA")
+                .contentTitle(drama.getTitle())
+                .posterPath(drama.getPosterPath())
+                .averageScore(roundToTwoDecimals(averageScore))
+                .ratingCount(ratingCount)
+                .tmdbRating(drama.getVoteAverage())
+                .build();
     }
 
     // 영화별 별점 목록 조회
@@ -220,7 +231,7 @@ public class RatingService {
         dto.setId(rating.getId());
         dto.setScore(rating.getScore());
         dto.setUsername(rating.getUser().getName());
-        dto.setUserId(rating.getUser().getId());
+        dto.setUserId(rating.getUser().getUserId());
 
         if (rating.getMovie() != null) {
             dto.setMovieId(rating.getMovie().getId());

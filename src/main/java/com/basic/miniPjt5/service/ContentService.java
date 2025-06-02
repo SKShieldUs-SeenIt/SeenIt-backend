@@ -20,52 +20,54 @@ public class ContentService {
         this.movieService = movieService;
         this.dramaService = dramaService;
     }
-
-    // 통합 검색
+    //통합검색
     public ContentDTO.SearchResult searchContent(ContentDTO.SearchRequest searchRequest, int page, int size) {
-        ContentDTO.SearchResult.SearchResultBuilder resultBuilder = ContentDTO.SearchResult.builder()
-                .query(searchRequest.getQuery());
+        List<MovieDTO.ListResponse> movies;
+        List<DramaDTO.ListResponse> dramas;
+        int totalMovieResults;
+        int totalDramaResults;
 
         if ("MOVIE".equals(searchRequest.getContentType())) {
             // 영화만 검색
             MovieDTO.SearchRequest movieSearch = convertToMovieSearch(searchRequest);
             Page<MovieDTO.ListResponse> movieResults = movieService.searchMovies(movieSearch, page, size);
-            
-            resultBuilder
-                .movies(movieResults.getContent())
-                .dramas(List.of())
-                .totalMovieResults((int) movieResults.getTotalElements())
-                .totalDramaResults(0);
-                
+
+            movies = movieResults.getContent();
+            dramas = List.of();
+            totalMovieResults = (int) movieResults.getTotalElements();
+            totalDramaResults = 0;
+
         } else if ("DRAMA".equals(searchRequest.getContentType())) {
             // 드라마만 검색
             DramaDTO.SearchRequest dramaSearch = convertToDramaSearch(searchRequest);
             Page<DramaDTO.ListResponse> dramaResults = dramaService.searchDramas(dramaSearch, page, size);
-            
-            resultBuilder
-                .movies(List.of())
-                .dramas(dramaResults.getContent())
-                .totalMovieResults(0)
-                .totalDramaResults((int) dramaResults.getTotalElements());
-                
+
+            movies = List.of();
+            dramas = dramaResults.getContent();
+            totalMovieResults = 0;
+            totalDramaResults = (int) dramaResults.getTotalElements();
+
         } else {
             // 모든 컨텐츠 검색
             MovieDTO.SearchRequest movieSearch = convertToMovieSearch(searchRequest);
             DramaDTO.SearchRequest dramaSearch = convertToDramaSearch(searchRequest);
-            
+
             Page<MovieDTO.ListResponse> movieResults = movieService.searchMovies(movieSearch, page, size);
             Page<DramaDTO.ListResponse> dramaResults = dramaService.searchDramas(dramaSearch, page, size);
-            
-            resultBuilder
-                .movies(movieResults.getContent())
-                .dramas(dramaResults.getContent())
-                .totalMovieResults((int) movieResults.getTotalElements())
-                .totalDramaResults((int) dramaResults.getTotalElements());
+
+            movies = movieResults.getContent();
+            dramas = dramaResults.getContent();
+            totalMovieResults = (int) movieResults.getTotalElements();
+            totalDramaResults = (int) dramaResults.getTotalElements();
         }
 
-        return resultBuilder
-                .totalResults(resultBuilder.build().getTotalMovieResults() + 
-                             resultBuilder.build().getTotalDramaResults())
+        return ContentDTO.SearchResult.builder()
+                .query(searchRequest.getQuery())
+                .movies(movies)
+                .dramas(dramas)
+                .totalMovieResults(totalMovieResults)
+                .totalDramaResults(totalDramaResults)
+                .totalResults(totalMovieResults + totalDramaResults)
                 .currentPage(page)
                 .build();
     }
