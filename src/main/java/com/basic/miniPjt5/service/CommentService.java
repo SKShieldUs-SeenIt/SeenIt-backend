@@ -52,7 +52,9 @@ public class CommentService {
                     .orElseThrow(()->new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
             comment.setParentComment(parent);
         }
-        return CommentDTO.Response.fromEntity(comment);
+
+        Comment createComment = commentRepository.save(comment);
+        return CommentDTO.Response.fromEntity(createComment);
     }
 
     @Transactional
@@ -67,7 +69,9 @@ public class CommentService {
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "내용을 입력해주세요");
         comment.setContent(request.getContent());
 
-        return CommentDTO.Response.fromEntity(comment);
+        Comment updateComment = commentRepository.save(comment);
+
+        return CommentDTO.Response.fromEntity(updateComment);
     }
 
     @Transactional
