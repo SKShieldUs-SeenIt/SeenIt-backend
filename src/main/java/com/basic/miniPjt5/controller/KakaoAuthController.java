@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -20,20 +22,26 @@ public class KakaoAuthController {
     /**
      * 프론트에서 전달된 인가 코드를 통해 로그인 처리
      */
-    @GetMapping("/kakao/callback")
-    public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code) {
+    @PostMapping("/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> requestBody) {
+        String code = requestBody.get("code");
+        log.info("✅ 카카오 로그인 요청 수신 - code: {}", code);
+
         try {
-            log.info("✅ 인가 코드 수신: {}", code);
-
             KakaoLoginResponse response = kakaoAuthService.login(code);
-
-            log.info("✅ 로그인 성공 - 유저 ID: {}", response.getId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ 로그인 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("로그인 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/kakao/callback")
+    public ResponseEntity<String> kakaoCallback(@RequestParam String code) {
+        log.info("카카오 콜백 - code: {}", code);
+        // 여기서는 보통 인가 코드를 프론트로 리다이렉트하거나 바로 토큰 교환 처리 가능
+        return ResponseEntity.ok("인가 코드 받음: " + code);
     }
 
     /**

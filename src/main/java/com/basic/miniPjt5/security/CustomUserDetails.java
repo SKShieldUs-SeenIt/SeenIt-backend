@@ -121,7 +121,7 @@ public class CustomUserDetails implements UserDetails {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        
+
         CustomUserDetails that = (CustomUserDetails) obj;
         return user.getUserId().equals(that.user.getUserId());
     }

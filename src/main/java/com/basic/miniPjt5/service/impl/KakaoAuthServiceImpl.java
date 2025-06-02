@@ -4,10 +4,9 @@ import com.basic.miniPjt5.DTO.KakaoLoginResponse;
 import com.basic.miniPjt5.DTO.KakaoTokenResponse;
 import com.basic.miniPjt5.DTO.KakaoUserInfo;
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.jwt.JwtTokenProvider;
 import com.basic.miniPjt5.service.KakaoAuthService;
 import com.basic.miniPjt5.service.UserService;
-import com.basic.miniPjt5.jwt.JwtTokenProvider;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,21 +32,25 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private final WebClient.Builder webClientBuilder;
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;  // **JwtTokenProvider 주입**
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public KakaoLoginResponse login(String code) {
-        // 1. 카카오로부터 토큰 받기
+        // 1. 카카오 토큰 요청
         KakaoTokenResponse tokenResponse = getToken(code);
         log.info("🟡 access token: {}", tokenResponse.getAccessToken());
 
-        // 2. 카카오 사용자 정보 받기
+        // 2. 사용자 정보 조회
         KakaoUserInfo userInfo = getUserInfo(tokenResponse.getAccessToken());
-        log.info("🟡 user info response: {}", userInfo); // ✅ 여기에 추가
+        log.info("🟡 user info: {}", userInfo);
 
-        // 3. User 엔티티 생성 or 업데이트
+        // 3. 신규 사용자 여부 판단
+        String kakaoId = String.valueOf(userInfo.getId());
+        boolean isNewUser = !userService.existsByKakaoId(kakaoId);
+
+        // 4. User 객체 생성 및 저장 또는 업데이트
         User user = User.builder()
-                .kakaoId(String.valueOf(userInfo.getId()))
+                .kakaoId(kakaoId)
                 .email(userInfo.getEmail())
                 .name(userInfo.getName())
                 .profileImageUrl(userInfo.getProfileImageUrl())
@@ -58,17 +61,14 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         User savedUser = userService.saveOrUpdate(user);
         log.info("✅ 사용자 저장 완료: {}", savedUser.getEmail());
 
-        // 4. JWT Access Token 생성 (user의 DB id 또는 kakaoId를 문자열로)
+        // 5. JWT 생성
         String jwtAccessToken = jwtTokenProvider.createAccessToken(savedUser.getKakaoId());
 
-        // 5. 로그인 응답에 JWT 토큰 포함
-        return new KakaoLoginResponse(
-                jwtAccessToken,            // JWT Access Token으로 대체
-                tokenResponse.getRefreshToken(),
-                userInfo.getId(),
-                userInfo.getName(),
-                userInfo.getEmail()
-        );
+        // 6. 응답 반환
+        return KakaoLoginResponse.builder()
+                .accessToken(jwtAccessToken)
+                .isNewUser(isNewUser)
+                .build();
     }
 
     private KakaoTokenResponse getToken(String code) {

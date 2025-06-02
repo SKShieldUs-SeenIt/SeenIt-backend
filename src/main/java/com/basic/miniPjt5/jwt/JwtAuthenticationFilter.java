@@ -25,19 +25,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            String userId = jwtTokenProvider.getUserIdFromToken(token);
+        if (token != null) {
+            log.info("Authorization header 토큰 있음: {}", token);
+            if (jwtTokenProvider.validateToken(token)) {
+                String userId = jwtTokenProvider.getUserIdFromToken(token);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, null);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userId, null, null);
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            log.info("✅ JWT 인증 성공, userId: {}", userId);
+                log.info("✅ JWT 인증 성공, userId: {}", userId);
+            } else {
+                log.info("❌ JWT 토큰 유효성 검사 실패");
+            }
         } else {
-            log.info("❌ JWT 인증 실패 또는 토큰 없음");
+            log.info("❌ Authorization 헤더에 Bearer 토큰이 없음 또는 형식 오류");
         }
 
         filterChain.doFilter(request, response);
@@ -45,6 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+        log.info("Authorization 헤더 값: {}", bearerToken);
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }

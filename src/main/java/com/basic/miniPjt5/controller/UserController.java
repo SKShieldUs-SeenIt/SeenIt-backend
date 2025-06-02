@@ -10,65 +10,60 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
 
     private final UserService userService;
 
-    //GET 현재 로그인한 유저 정보 조회 (/users/me 역할)
-    @GetMapping("/profile")
-    public ResponseEntity<?> profile(Authentication authentication) {
+    // 🔐 인증된 사용자 ID 추출 (중복 제거용)
+    private String extractKakaoIdOrThrow(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.");
         }
+        return (String) authentication.getPrincipal();
+    }
 
-        String kakaoId = (String) authentication.getPrincipal();
-        log.info("✅ 인증된 사용자 ID: {}", kakaoId);
+    // ✅ GET: 현재 로그인한 유저 정보 조회
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getProfile(Authentication authentication) {
+        String kakaoId = extractKakaoIdOrThrow(authentication);
+        log.info("✅ 사용자 정보 조회 요청 - kakaoId: {}", kakaoId);
 
         User user = userService.findByKakaoId(kakaoId);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
 
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getPreferredGenres());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(UserResponse.fromEntity(user));
     }
 
-    //PUT 유저 정보 수정
-    @PutMapping("/mypage")
-    public ResponseEntity<?> updateUserInfo(
+    // ✅ PUT: 유저 정보 수정
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateUser(
             @Valid @RequestBody UserUpdateRequest request,
             Authentication authentication) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
-        }
-
-        String kakaoId = (String) authentication.getPrincipal();
-        log.info("🔄 사용자 정보 수정 요청, 사용자ID: {}", kakaoId);
+        String kakaoId = extractKakaoIdOrThrow(authentication);
+        log.info("🔄 사용자 정보 수정 요청 - kakaoId: {}", kakaoId);
 
         User updatedUser = userService.updateUserInfo(kakaoId, request);
         if (updatedUser == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
 
-        UserResponse response = new UserResponse(updatedUser.getId(), updatedUser.getName(), updatedUser.getPreferredGenres());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(UserResponse.fromEntity(updatedUser));
     }
 
-    //사용자 탈퇴 (Soft Delete 방식)
+    // ✅ DELETE: 사용자 탈퇴 (Soft Delete 방식)
     @DeleteMapping("/me")
-    public ResponseEntity<?> withdrawUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
-        }
-
-        String kakaoId = (String) authentication.getPrincipal();
-        log.info("❌ 사용자 탈퇴 요청, 사용자ID: {}", kakaoId);
+    public ResponseEntity<String> withdrawUser(Authentication authentication) {
+        String kakaoId = extractKakaoIdOrThrow(authentication);
+        log.info("❌ 사용자 탈퇴 요청 - kakaoId: {}", kakaoId);
 
         userService.deactivateUser(kakaoId);
         return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");

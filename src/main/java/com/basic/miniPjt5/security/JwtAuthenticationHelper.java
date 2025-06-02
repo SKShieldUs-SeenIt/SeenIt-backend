@@ -20,24 +20,24 @@ public class JwtAuthenticationHelper {
      */
     public Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             log.warn("No authenticated user found");
             throw new IllegalStateException("인증된 사용자가 없습니다.");
         }
 
         Object principal = authentication.getPrincipal();
-        
+
         if (principal instanceof CustomUserDetails) {
             Long userId = ((CustomUserDetails) principal).getUserId();
             log.debug("Current user ID: {}", userId);
             return userId;
         }
-        
+
         if (principal instanceof String && "anonymousUser".equals(principal)) {
             throw new IllegalStateException("익명 사용자입니다. 로그인이 필요합니다.");
         }
-        
+
         log.error("Unexpected principal type: {}", principal.getClass());
         throw new IllegalStateException("인증 정보를 확인할 수 없습니다.");
     }
@@ -47,17 +47,17 @@ public class JwtAuthenticationHelper {
      */
     public CustomUserDetails getCurrentUserDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("인증된 사용자가 없습니다.");
         }
 
         Object principal = authentication.getPrincipal();
-        
+
         if (principal instanceof CustomUserDetails) {
             return (CustomUserDetails) principal;
         }
-        
+
         throw new IllegalStateException("CustomUserDetails를 찾을 수 없습니다.");
     }
 
@@ -82,7 +82,7 @@ public class JwtAuthenticationHelper {
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getUserId();
         }
-        
+
         log.error("Cannot extract user ID from UserDetails: {}", userDetails.getClass());
         throw new IllegalArgumentException("올바르지 않은 UserDetails 타입입니다.");
     }

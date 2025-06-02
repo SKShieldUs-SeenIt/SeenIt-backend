@@ -2,7 +2,14 @@ package com.basic.miniPjt5.DTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
+/**
+ * 📥 사용자 정보 수정 요청 DTO
+ */
+@Getter
+@Setter
 public class UserUpdateRequest {
 
     @NotBlank(message = "이름은 필수입니다")
@@ -10,20 +17,4 @@ public class UserUpdateRequest {
     private String name;
 
     private String preferredGenres;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPreferredGenres() {
-        return preferredGenres;
-    }
-
-    public void setPreferredGenres(String preferredGenres) {
-        this.preferredGenres = preferredGenres;
-    }
 }

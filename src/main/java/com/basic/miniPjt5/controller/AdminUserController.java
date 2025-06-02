@@ -1,5 +1,6 @@
 package com.basic.miniPjt5.controller;
 
+import java.util.List;
 import com.basic.miniPjt5.DTO.UserAdminResponse;
 import com.basic.miniPjt5.DTO.UserStatusUpdateRequest;
 import com.basic.miniPjt5.entity.User;
@@ -9,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/users")
