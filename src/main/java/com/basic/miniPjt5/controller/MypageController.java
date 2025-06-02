@@ -1,6 +1,6 @@
 package com.basic.miniPjt5.controller;
 
-import com.basic.miniPjt5.dto.UserUpdateRequest;
+import com.basic.miniPjt5.DTO.UserUpdateRequest;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.service.UserService;
 import jakarta.validation.Valid;

@@ -21,24 +21,18 @@ public class UserService {
     public User saveOrUpdate(User kakaoUser) {
         return userRepository.findByKakaoId(kakaoUser.getKakaoId())
                 .map(existingUser -> {
-                    // 기존 사용자 정보 업데이트
-                    User updatedUser = User.builder()
-                            .userId(existingUser.getUserId()) // 기존 ID 유지
-                            .kakaoId(kakaoUser.getKakaoId())
-                            .name(kakaoUser.getName())
-                            .email(kakaoUser.getEmail())
-                            .profileImageUrl(kakaoUser.getProfileImageUrl())
-                            .status(UserStatus.ACTIVE)
-                            .preferredGenres(existingUser.getPreferredGenres())
-                            .joinDate(existingUser.getJoinDate())
-                            .build();
-                    return userRepository.save(updatedUser);
+                    // **필요한 필드만 업데이트**
+                    existingUser.setName(kakaoUser.getName());
+                    existingUser.setEmail(kakaoUser.getEmail());
+                    existingUser.setProfileImageUrl(kakaoUser.getProfileImageUrl());
+                    existingUser.setStatus(UserStatus.ACTIVE);
+                    return existingUser; // JPA Dirty Checking
                 })
-                .orElseGet(() -> userRepository.save(kakaoUser)); // 신규 사용자 저장
+                .orElseGet(() -> userRepository.save(kakaoUser));
     }
 
     /**
-     * ✏️ 사용자 정보 수정 (kakaoId 기준)
+     * ✅ 사용자 정보 수정 - Kakao ID 기준 (UserController에서 사용)
      */
     @Transactional
     public void updateUserInfo(String kakaoId, UserUpdateRequest request) {
@@ -50,14 +44,36 @@ public class UserService {
     }
 
     /**
-     * ✏️ 사용자 정보 수정 (userId 기준 - 추가적 사용 대비)
+     * ❌ 사용자 탈퇴 (소프트 삭제)
      */
     @Transactional
-    public User updateUser(Long userId, String name, String preferredGenres) {
+    public void deactivateUser(String kakaoId) {
+        User user = userRepository.findByKakaoId(kakaoId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.setStatus(UserStatus.DELETED);
+    }
+
+    //서비스 메서드
+    public List<UserAdminResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserAdminResponse(
+                        user.getUserId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getStatus()
+                ))
+                .toList();
+    }
+
+    // 관리자용 상태 변경 메서드
+    @Transactional
+    public User changeUserStatus(Long userId, UserStatus newStatus) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        user.updateProfile(name, user.getProfileImageUrl(), preferredGenres); // 커스텀 메서드일 경우 엔티티에 정의돼 있어야 함
+        user.setStatus(newStatus);
         return user;
     }
+
+
+
 }

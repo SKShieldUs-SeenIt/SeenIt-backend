@@ -17,6 +17,9 @@ public class UserDTO {
         private String name;
 
         public static SimpleResponse fromEntity(User user) {
+            if (user == null) {
+                return null;
+            }
             return SimpleResponse.builder()
                     .userId(user.getUserId())
                     .name(user.getName())

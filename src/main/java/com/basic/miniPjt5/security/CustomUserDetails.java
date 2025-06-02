@@ -24,7 +24,7 @@ public class CustomUserDetails implements UserDetails {
      * 사용자 ID 반환 (User 엔티티의 PK)
      */
     public Long getUserId() {
-        return user.getId();
+        return user.getUserId();
     }
 
     /**
@@ -123,18 +123,18 @@ public class CustomUserDetails implements UserDetails {
         if (obj == null || getClass() != obj.getClass()) return false;
         
         CustomUserDetails that = (CustomUserDetails) obj;
-        return user.getId().equals(that.user.getId());
+        return user.getUserId().equals(that.user.getUserId());
     }
 
     @Override
     public int hashCode() {
-        return user.getId().hashCode();
+        return user.getUserId().hashCode();
     }
 
     @Override
     public String toString() {
         return "CustomUserDetails{" +
-                "userId=" + user.getId() +
+                "userId=" + user.getUserId() +
                 ", kakaoId='" + user.getKakaoId() + '\'' +
                 ", name='" + user.getName() + '\'' +
                 ", status=" + user.getStatus() +

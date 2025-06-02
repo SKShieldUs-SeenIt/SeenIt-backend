@@ -53,7 +53,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("비활성화된 사용자입니다: " + userId);
         }
         
-        log.debug("Successfully loaded user: {} ({})", user.getName(), user.getId());
+        log.debug("Successfully loaded user: {} ({})", user.getName(), user.getUserId());
         return new CustomUserDetails(user);
     }
 }

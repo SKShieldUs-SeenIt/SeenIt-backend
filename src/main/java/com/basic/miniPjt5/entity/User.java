@@ -8,11 +8,9 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.util.StringUtils;
-import java.util.ArrayList;
-import java.util.List;
 
 import java.time.LocalDate;
 
@@ -25,6 +23,7 @@ import java.time.LocalDate;
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 public class User extends BaseEntity {
 
     @Id
@@ -41,7 +40,7 @@ public class User extends BaseEntity {
     private String name;
 
     @Email(message = "올바른 이메일 형식이어야 합니다")
-    @Column(nullable = true, length = 100, unique = true)
+    @Column(length = 100) // ✅ nullable 허용 시 unique 제거
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -57,32 +56,49 @@ public class User extends BaseEntity {
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
-    // 상태 확인
+    /**
+     * 계정 활성 상태 확인
+     */
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
 
-    // 상태 변경
+    /**
+     * 계정 상태 변경
+     */
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;
-            // TODO: 상태 변경 이력 기록
+            // TODO: 상태 변경 이력 저장 필요 시 구현
         }
     }
 
-    // 프로필 업데이트
+    /**
+     * 사용자 프로필 수정
+     */
     public void updateProfile(String name, String profileImageUrl, String preferredGenres) {
-        if (StringUtils.hasText(name)) this.name = name;
-        if (StringUtils.hasText(profileImageUrl)) this.profileImageUrl = profileImageUrl;
+        this.name = name;
+        this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres;
     }
 
-    // 빌더
+    /**
+     * 생성 시 joinDate가 null이면 자동 할당
+     */
+    @PrePersist
+    protected void onCreate() {
+        if (this.joinDate == null) {
+            this.joinDate = LocalDate.now();
+        }
+    }
+
+    /**
+     * 빌더
+     */
     @Builder
-    private User(Long userId, String kakaoId, String name, String email,
+    private User(String kakaoId, String name, String email,
                  String profileImageUrl, String preferredGenres,
                  UserStatus status, LocalDate joinDate) {
-        this.userId = userId;
         this.kakaoId = kakaoId;
         this.name = name;
         this.email = email;
@@ -92,7 +108,9 @@ public class User extends BaseEntity {
         this.joinDate = joinDate != null ? joinDate : LocalDate.now();
     }
 
-    // 정적 팩토리 메서드
+    /**
+     * 정적 팩토리 메서드
+     */
     public static User create(String kakaoId, String name, String email,
                               String profileImageUrl, String preferredGenres) {
         return User.builder()
@@ -104,5 +122,21 @@ public class User extends BaseEntity {
                 .status(UserStatus.ACTIVE)
                 .joinDate(LocalDate.now())
                 .build();
+    }
+
+    /**
+     * 디버깅용 toString()
+     */
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", kakaoId='" + kakaoId + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", status=" + status +
+                ", preferredGenres='" + preferredGenres + '\'' +
+                ", joinDate=" + joinDate +
+                '}';
     }
 }
