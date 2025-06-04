@@ -44,7 +44,7 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    @Operation(summary = "댓글 생성", description = "댓글 생성(내용, 댓글 부모 Id)", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "댓글 생성", description = "댓글 생성(내용, 댓글 부모 Id)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "댓글 생성 성공",
                     content = @Content(schema = @Schema(implementation = CommentDTO.Response.class))),
@@ -70,7 +70,7 @@ public class CommentController {
         return ResponseEntity.ok(createComment);
     }
 
-    @Operation(summary = "댓글 수정", description = "댓글 수정(내용, 댓글 고유Id, 사용자 Id)", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "댓글 수정", description = "댓글 수정(내용, 댓글 고유Id, 사용자 Id)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "댓글 수정 성공",
                     content = @Content(schema = @Schema(implementation = CommentDTO.Response.class))),
@@ -98,7 +98,7 @@ public class CommentController {
         return ResponseEntity.ok(updateComment);
     }
 
-    @Operation(summary = "댓글 삭제", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "댓글 삭제")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "댓글 삭제 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자 (유효한 JWT 토큰 필요)", // 인증 실패 시 401
@@ -108,6 +108,7 @@ public class CommentController {
             @ApiResponse(responseCode = "404", description = "댓글을 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
+
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<Void> deleteComment(@Parameter(name = "id", description = "댓글의 고유 ID", in = ParameterIn.PATH, required = true,
                                                 schema = @Schema(type = "integer", format = "int64"))
