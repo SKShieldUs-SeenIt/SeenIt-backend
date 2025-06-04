@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.controller;
 
 import java.util.List;
+import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.DTO.UserAdminResponse;
 import com.basic.miniPjt5.DTO.UserStatusUpdateRequest;
 import com.basic.miniPjt5.entity.User;
@@ -35,7 +36,7 @@ public class AdminUserController {
     }
 
     // ✅ PUT: 사용자 상태 변경 (예: ACTIVE → SUSPENDED)
-    @Operation(summary = "사용자 상태 변경 (관리자)", description = "지정한 사용자 ID의 상태를 변경합니다. 예: ACTIVE, SUSPENDED, DELETED")
+    @Operation(summary = "사용자 상태 변경 (관리자)", description = "지정한 사용자 ID의 상태를 변경합니다. 예: ACTIVE, SUSPENDED, WITHDRAWN, DELETED")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "상태 변경 성공"),
             @ApiResponse(responseCode = "404", description = "해당 사용자를 찾을 수 없음")
@@ -46,8 +47,14 @@ public class AdminUserController {
             @Valid @RequestBody UserStatusUpdateRequest request) {
 
         try {
-            User updatedUser = userService.changeUserStatus(userId, request.getStatus());
-            return ResponseEntity.ok("✅ 사용자 상태가 " + updatedUser.getStatus() + "로 변경되었습니다.");
+            UserStatus status = request.getStatus();
+            User updatedUser = userService.changeUserStatus(userId, status);
+
+            if (status == UserStatus.DELETED) {
+                return ResponseEntity.ok("🗑️ 사용자 계정이 완전히 삭제되었습니다.");
+            }
+
+            return ResponseEntity.ok("✅ 사용자 상태가 " + status + "로 변경되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

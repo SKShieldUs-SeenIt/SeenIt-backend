@@ -1,5 +1,6 @@
 package com.basic.miniPjt5.entity;
 
+import com.basic.miniPjt5.converter.ListToStringConverter;
 import com.basic.miniPjt5.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,6 +14,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -40,15 +43,17 @@ public class User extends BaseEntity {
     private String name;
 
     @Email(message = "올바른 이메일 형식이어야 합니다")
-    @Column(length = 100) // ✅ nullable 허용 시 unique 제거
+    @Column(length = 100)
     private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status;
 
-    @Column(name = "preferred_genres", length = 255)
-    private String preferredGenres;
+    // ** 변경된 부분: 문자열로 저장, Java에선 List<String> 사용 **
+    @Convert(converter = ListToStringConverter.class)
+    @Column(name = "preferred_genres", length = 300)
+    private List<String> preferredGenres = new ArrayList<>();
 
     @Column(name = "join_date", nullable = false)
     private LocalDate joinDate;
@@ -56,35 +61,22 @@ public class User extends BaseEntity {
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
-    /**
-     * 계정 활성 상태 확인
-     */
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
 
-    /**
-     * 계정 상태 변경
-     */
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;
-            // TODO: 상태 변경 이력 저장 필요 시 구현
         }
     }
 
-    /**
-     * 사용자 프로필 수정
-     */
-    public void updateProfile(String name, String profileImageUrl, String preferredGenres) {
+    public void updateProfile(String name, String profileImageUrl, List<String> preferredGenres) {
         this.name = name;
         this.profileImageUrl = profileImageUrl;
-        this.preferredGenres = preferredGenres;
+        this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
     }
 
-    /**
-     * 생성 시 joinDate가 null이면 자동 할당
-     */
     @PrePersist
     protected void onCreate() {
         if (this.joinDate == null) {
@@ -92,27 +84,21 @@ public class User extends BaseEntity {
         }
     }
 
-    /**
-     * 빌더
-     */
     @Builder
     private User(String kakaoId, String name, String email,
-                 String profileImageUrl, String preferredGenres,
+                 String profileImageUrl, List<String> preferredGenres,
                  UserStatus status, LocalDate joinDate) {
         this.kakaoId = kakaoId;
         this.name = name;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
-        this.preferredGenres = preferredGenres;
+        this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
         this.status = status != null ? status : UserStatus.ACTIVE;
         this.joinDate = joinDate != null ? joinDate : LocalDate.now();
     }
 
-    /**
-     * 정적 팩토리 메서드
-     */
     public static User create(String kakaoId, String name, String email,
-                              String profileImageUrl, String preferredGenres) {
+                              String profileImageUrl, List<String> preferredGenres) {
         return User.builder()
                 .kakaoId(kakaoId)
                 .name(name)
@@ -124,9 +110,6 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    /**
-     * 디버깅용 toString()
-     */
     @Override
     public String toString() {
         return "User{" +
@@ -135,7 +118,7 @@ public class User extends BaseEntity {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
-                ", preferredGenres='" + preferredGenres + '\'' +
+                ", preferredGenres=" + preferredGenres +
                 ", joinDate=" + joinDate +
                 '}';
     }

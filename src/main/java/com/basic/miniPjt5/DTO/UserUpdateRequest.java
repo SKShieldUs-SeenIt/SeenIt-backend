@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.List;
 
 //📥 사용자 정보 수정 요청 DTO
 @Getter
@@ -17,7 +18,6 @@ public class UserUpdateRequest {
     @Schema(description = "변경할 사용자 이름", example = "홍길동")
     private String name;
 
-    // 리스트 형식으로 수정 필요
-    @Schema(description = "선호 장르 (쉼표로 구분)", example = "드라마,코미디,스릴러")
-    private String preferredGenres;
+    @Schema(description = "선호 장르 리스트", example = "[\"드라마\", \"코미디\", \"스릴러\"]")
+    private List<String> preferredGenres;
 }

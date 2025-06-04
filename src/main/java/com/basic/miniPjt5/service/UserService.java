@@ -89,8 +89,15 @@ public class UserService {
     @Transactional
     public User changeUserStatus(Long userId, UserStatus newStatus) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
-        user.setStatus(newStatus);
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        if (newStatus == UserStatus.DELETED) {
+            userRepository.delete(user); // ✅ 하드 삭제
+            return null; // 컨트롤러에서 처리
+        }
+
+        // ✅ 소프트 삭제 및 기타 상태 변경
+        user.changeStatus(newStatus, "관리자 변경");
         return user;
     }
 }

@@ -35,7 +35,7 @@ public class KakaoAuthController {
     })
     @GetMapping("/kakao/callback")
     public void kakaoCallback(@RequestParam String code, HttpServletResponse response) {
-        log.info("✅ 카카오 인가 코드 수신 - code: {}", code);
+        log.info("✅ 로그인 성공, 카카오 인가 코드 수신 - code: {}", code);
 
         try {
             KakaoLoginResponse loginResponse = kakaoAuthService.login(code);
