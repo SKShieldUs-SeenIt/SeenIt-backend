@@ -22,13 +22,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                // CSRF 비활성화 (REST API 보통 비활성화함)
                 .csrf(csrf -> csrf.disable())
+                // 세션 사용 안함 (JWT 토큰 기반 stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 인증 예외처리 엔트리 포인트 등록 (401 응답 처리)
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                // 요청 경로별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // 수정된 경로
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/**").permitAll() // 인증 예외 경로
+                        .anyRequest().authenticated()                // 그 외 요청 인증 필요
                 )
+                // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 등록하여 JWT 인증 처리
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
