@@ -3,6 +3,7 @@ package com.basic.miniPjt5.config;
 import com.basic.miniPjt5.jwt.JwtAuthenticationEntryPoint;
 import com.basic.miniPjt5.jwt.JwtAuthenticationFilter;
 import com.basic.miniPjt5.jwt.JwtTokenProvider;
+import com.basic.miniPjt5.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,24 +18,28 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // CSRF 비활성화 (REST API 보통 비활성화함)
                 .csrf(csrf -> csrf.disable())
-                // 세션 사용 안함 (JWT 토큰 기반 stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 인증 예외처리 엔트리 포인트 등록 (401 응답 처리)
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                // 요청 경로별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // 인증 예외 경로
-                        .anyRequest().authenticated()                // 그 외 요청 인증 필요
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 등록하여 JWT 인증 처리
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                // JwtAuthenticationFilter에 UserRepository 주입해서 생성자 호출
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userRepository), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -11,13 +11,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.repository.UserRepository;
+import com.basic.miniPjt5.security.UserPrincipal;
+
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository; // DB 조회용
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -29,30 +35,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("Authorization header 토큰 있음: {}", token);
 
             if (jwtTokenProvider.validateToken(token)) {
-                String userId = jwtTokenProvider.getUserIdFromToken(token);
+                String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, null);
+                log.info("✅ JWT 토큰에서 추출된 userId: {}", userIdStr);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // DB에서 User 조회 후 UserPrincipal 생성
+                Long userId = Long.valueOf(userIdStr);
+                Optional<User> userOptional = userRepository.findById(userId);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (userOptional.isPresent()) {
+                    UserPrincipal userPrincipal = UserPrincipal.fromUser(userOptional.get());
 
-                log.info("✅ JWT 인증 성공, userId: {}", userId);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    log.info("✅ JWT 인증 성공, userId: {}", userId);
+
+                } else {
+                    log.warn("❌ DB에 userId에 해당하는 사용자가 없음");
+                }
 
             } else {
                 log.warn("❌ JWT 토큰 유효성 검사 실패");
-                // Optional: 인증 실패시 바로 401 응답 처리하려면 아래 코드 추가 가능
-                /*
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"error\":\"Invalid or expired JWT token\"}");
-                return;
-                */
             }
         } else {
             log.info("❌ Authorization 헤더에 Bearer 토큰이 없음 또는 형식 오류");
-            // 토큰 없을 땐 그냥 인증 없이 다음 필터로 넘김
         }
 
         filterChain.doFilter(request, response);

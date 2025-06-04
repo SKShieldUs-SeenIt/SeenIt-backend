@@ -62,8 +62,10 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         User savedUser = userService.saveOrUpdate(user);
         log.info("✅ 사용자 이메일 저장 완료: {}", savedUser.getEmail());
 
+        log.info("✅ 저장된 userId: {}", savedUser.getUserId());
+
         // 5. JWT 생성 (createJwtToken 호출)
-        String jwtAccessToken = createJwtToken(savedUser.getKakaoId());
+        String jwtAccessToken = createJwtToken(savedUser.getUserId().toString());
 
         // 6. 응답 반환 (JWT 토큰 포함)
         return KakaoLoginResponse.builder()
@@ -119,8 +121,8 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     // 3. JWT 토큰을 생성하는 메서드 (createJwtToken)
     @Override
-    public String createJwtToken(String kakaoId) {
-        // JWT 토큰 생성 로직
-        return jwtTokenProvider.createAccessToken(kakaoId);  // JWT 토큰을 생성하여 반환
+    public String createJwtToken(String userId) {
+        log.info("JWT 토큰 생성 시 전달된 userId: {}", userId);
+        return jwtTokenProvider.createAccessToken(userId);
     }
 }
