@@ -2,6 +2,7 @@ package com.basic.miniPjt5.exception.advice;
 
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+//@RestControllerAdvice(basePackages = "com.basic.miniPjt5.controller")
 @Slf4j
 public class GlobalExceptionHandler {
 
@@ -155,10 +156,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 일반 예외 처리 (기존 코드)
+     * 일반 예외 처리 - Swagger 경로 제외 (수정됨)
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e, HttpServletRequest request) {
+        // Swagger 관련 경로는 예외 처리에서 완전히 제외
+        String requestURI = request.getRequestURI();
+        if (requestURI.contains("/swagger-ui") ||
+                requestURI.contains("/v3/api-docs") ||
+                requestURI.contains("/swagger-resources") ||
+                requestURI.contains("/webjars")) {
+
+            log.debug("Swagger related exception - letting Spring handle it: {}", e.getMessage());
+            return null; // null을 리턴하면 다음 ExceptionResolver가 처리
+        }
+
         log.error("Unexpected error: {}", e.getMessage(), e);
 
         ErrorResponse errorResponse = ErrorResponse.builder()

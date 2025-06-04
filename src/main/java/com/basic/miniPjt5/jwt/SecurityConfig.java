@@ -1,4 +1,4 @@
-package com.basic.miniPjt5.config;
+package com.basic.miniPjt5.jwt;
 
 import com.basic.miniPjt5.jwt.JwtAuthenticationEntryPoint;
 import com.basic.miniPjt5.jwt.JwtAuthenticationFilter;
