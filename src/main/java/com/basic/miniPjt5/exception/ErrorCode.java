@@ -92,7 +92,6 @@ public enum ErrorCode {
     POST_NOT_FOUND("POST_001", "게시글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     POST_CODE_DUPLICATE("POST_002","이미 사용 중인 게시글 코드입니다", HttpStatus.CONFLICT),
     POST_ACCESS_DENIED("POST_003", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
-
     //댓글 관련(40X)
     COMMENT_NOT_FOUND("COMMENT_001", "댓글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     COMMENT_ACCESS_DENIED ("COMMENT_002", "작성자가 아닙니다", HttpStatus.FORBIDDEN),

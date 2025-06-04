@@ -6,6 +6,8 @@ import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
 
 import com.basic.miniPjt5.enums.ContentType;
+import com.basic.miniPjt5.exception.BusinessException;
+import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.*;
 import com.basic.miniPjt5.response.*;
 import org.slf4j.Logger;
@@ -44,14 +46,14 @@ public class TMDBDataInitializationService {
         switch (contentType) {
             case MOVIE:
                 Movie movie = movieRepository.findById(contentId)
-                        .orElseThrow(() -> new RuntimeException("Movie not found"));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.CONTENT_NOT_FOUND, "Movie를 찾지 못했습니다."));
                 return ContentSimpleDTO.fromMovie(movie);
             case DRAMA:
                 Drama drama = dramaRepository.findById(contentId)
-                        .orElseThrow(() -> new RuntimeException("Drama not found"));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.CONTENT_NOT_FOUND, "Drama를 찾지 못했습니다."));
                 return ContentSimpleDTO.fromDrama(drama);
             default:
-                throw new IllegalArgumentException("Unknown content type");
+                throw new BusinessException(ErrorCode.CONTENT_TYPE_INVALID);
         }
     }
 
