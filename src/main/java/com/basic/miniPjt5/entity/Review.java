@@ -12,7 +12,8 @@ import lombok.*;
 @Table(name = "reviews", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_movie_id", columnList = "movie_id"),
-        @Index(name = "idx_drama_id", columnList = "drama_id")
+        @Index(name = "idx_drama_id", columnList = "drama_id"),
+        @Index(name = "idx_title", columnList = "title")
 })
 public class Review extends BaseEntity {
 
@@ -21,8 +22,19 @@ public class Review extends BaseEntity {
     @Column(name = "review_id")
     private Long id;
 
+    @Column(nullable = false, length = 200)
+    private String title;  // 리뷰 제목
+
     @Column(nullable = false, length = 2000)
     private String content;  // 리뷰 내용
+
+    @Column(name = "likes_count")
+    @Builder.Default
+    private Integer likesCount = 0;  // 좋아요 수
+
+    @Column(name = "is_spoiler")
+    @Builder.Default
+    private Boolean isSpoiler = false;  // 스포일러 여부
 
     // 영화와의 관계 (선택적 - 영화 또는 드라마 중 하나)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,6 +50,22 @@ public class Review extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    // 좋아요 증가/감소 메서드
+    public void increaseLikes() {
+        this.likesCount++;
+    }
+
+    public void decreaseLikes() {
+        if (this.likesCount > 0) {
+            this.likesCount--;
+        }
+    }
+
+    // 스포일러 토글
+    public void toggleSpoiler() {
+        this.isSpoiler = !this.isSpoiler;
+    }
 
     // 유틸리티 메서드
     public boolean isMovieReview() {
@@ -55,5 +83,28 @@ public class Review extends BaseEntity {
         if ((movie == null && drama == null) || (movie != null && drama != null)) {
             throw new IllegalStateException("영화 또는 드라마 중 하나만 선택해야 합니다.");
         }
+    }
+
+    // 생성자 헬퍼 메서드
+    public static Review createMovieReview(User user, Movie movie, String title, String content, Boolean isSpoiler) {
+        return Review.builder()
+                .user(user)
+                .movie(movie)
+                .title(title)
+                .content(content)
+                .isSpoiler(isSpoiler != null ? isSpoiler : false)
+                .likesCount(0)
+                .build();
+    }
+
+    public static Review createDramaReview(User user, Drama drama, String title, String content, Boolean isSpoiler) {
+        return Review.builder()
+                .user(user)
+                .drama(drama)
+                .title(title)
+                .content(content)
+                .isSpoiler(isSpoiler != null ? isSpoiler : false)
+                .likesCount(0)
+                .build();
     }
 }
