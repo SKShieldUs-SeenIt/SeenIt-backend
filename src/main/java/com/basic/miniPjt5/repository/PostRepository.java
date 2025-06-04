@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.repository;
 
 import com.basic.miniPjt5.entity.Post;
+import com.basic.miniPjt5.enums.ContentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<String> findLastPostCodeByPrefix(@Param("prefix") String prefix);
 
     @Query("SELECT p From Post p WHERE p.contentType = :contentType AND p.contentId = :contentId")
-    List<Post> findPostsByContent(@Param("contentType") String contentType, @Param("contentId") Long contentId);
+    List<Post> findPostsByContent(@Param("contentType") ContentType contentType, @Param("contentId") Long contentId);
 
     Optional<Post> findByCode(String code);
 

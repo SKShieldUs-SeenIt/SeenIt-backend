@@ -1,6 +1,9 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
+import com.basic.miniPjt5.enums.ContentType;
+import com.basic.miniPjt5.repository.DramaRepository;
+import com.basic.miniPjt5.repository.MovieRepository;
 import com.basic.miniPjt5.repository.UserRepository;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
@@ -29,6 +32,8 @@ import java.util.UUID;
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final MovieRepository movieRepository; // MovieRepository 주입
+    private final DramaRepository dramaRepository;
 
     @Value("%{file.upload-dir}")
     private String uploadDir;
@@ -40,7 +45,21 @@ public class PostService {
                 .toList();
     }
 
-    public List<PostDTO.ListResponse> getPostsByContent(String contentType, Long contentId){
+    public List<PostDTO.ListResponse> getPostsByContent(ContentType contentType, Long contentId){
+        Optional<?> foundContent;
+        switch (contentType) {
+            case MOVIE:
+                foundContent = movieRepository.findById(contentId);
+                break;
+            case DRAMA:
+                foundContent = dramaRepository.findById(contentId);
+                break;
+            default:
+                throw new BusinessException(ErrorCode.CONTENT_TYPE_INVALID);
+        }
+
+        foundContent.orElseThrow(() -> new BusinessException(ErrorCode.CONTENT_NOT_FOUND));
+
         return postRepository.findPostsByContent(contentType, contentId)
                 .stream()
                 .map(PostDTO.ListResponse::fromEntity)
@@ -127,9 +146,17 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(String code) {
+    public void deletePost(String code, Long userId) {
         Post post = postRepository.findByCode(code)
                 .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!post.getUser().getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 삭제할 수 있습니다.");
+        }
+
+        deleteImage(post.getImageUrl());
         postRepository.delete(post);
     }
 
