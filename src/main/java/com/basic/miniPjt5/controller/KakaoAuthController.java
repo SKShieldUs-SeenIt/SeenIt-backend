@@ -2,15 +2,22 @@ package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.KakaoLoginResponse;
 import com.basic.miniPjt5.service.KakaoAuthService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,41 +27,23 @@ public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
 
-    /*@PostMapping("/kakao")
-    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> requestBody) {
-        String code = requestBody.get("code");
-        log.info("✅ 카카오 로그인 요청 수신 - code: {}", code);
-
-        if (code == null || code.isEmpty()) {
-            log.warn("⚠️ 인가 코드가 비어있거나 전달되지 않았습니다.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("인가 코드(code)가 없습니다.");
-        }
-
-        try {
-            KakaoLoginResponse response = kakaoAuthService.login(code);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("❌ 로그인 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("로그인 처리 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }*/
-
+    // ✅ GET: 카카오 로그인 콜백 처리
+    @Operation(summary = "카카오 로그인 콜백", description = "카카오 인가 코드를 받아 access token을 발급하고 JWT를 생성하여 프론트엔드로 리다이렉트합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "302", description = "JWT 토큰과 함께 프론트로 리다이렉트 성공"),
+            @ApiResponse(responseCode = "500", description = "로그인 처리 중 서버 오류 발생")
+    })
     @GetMapping("/kakao/callback")
     public void kakaoCallback(@RequestParam String code, HttpServletResponse response) {
         log.info("✅ 카카오 인가 코드 수신 - code: {}", code);
 
         try {
-            // 🔄 인가 코드로 access token 받고, 사용자 인증 처리 (JWT 생성까지)
             KakaoLoginResponse loginResponse = kakaoAuthService.login(code);
             String jwtToken = loginResponse.getAccessToken();
+            boolean isNewUser = loginResponse.isNewUser();
+            String redirectUrl = "http://localhost:5173/kakao/callback?token=" + jwtToken + "&isNew=" + isNewUser;
 
-            // ✅ 프론트로 redirect (JWT 전달)
-            String redirectUrl = "http://localhost:5173/kakao/complete?token=" + jwtToken;
-
-            response.sendRedirect(redirectUrl); // 302 Redirect 자동 처리됨
-
+            response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             log.error("❌ 로그인 처리 중 오류 발생", e);
             try {
@@ -65,6 +54,9 @@ public class KakaoAuthController {
         }
     }
 
+    // ✅ GET: 테스트용 엔드포인트
+    @Operation(summary = "API 테스트용 엔드포인트", description = "서버 연결 확인을 위한 간단한 테스트 API입니다.")
+    @ApiResponse(responseCode = "200", description = "정상 응답 OK 반환")
     @GetMapping("/test")
     public String test() {
         return "OK";
