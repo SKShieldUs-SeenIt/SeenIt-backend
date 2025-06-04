@@ -3,6 +3,12 @@ package com.basic.miniPjt5.controller;
 import com.basic.miniPjt5.DTO.RatingDTO;
 import com.basic.miniPjt5.security.CustomUserDetails;
 import com.basic.miniPjt5.service.RatingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,12 +24,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/ratings")
 @RequiredArgsConstructor
+@Tag(name = "별점", description = "별점 관리 API")
 public class RatingController {
 
     private final RatingService ratingService;
 
-    // 별점 생성/수정
     @PostMapping
+    @Operation(summary = "별점 등록/수정", description = "작품에 대한 별점 등록 또는 수정")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "별점 등록/수정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+    })
     public ResponseEntity<RatingDTO.Response> createOrUpdateRating(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody RatingDTO.Request requestDto) {
@@ -34,10 +47,12 @@ public class RatingController {
         return ResponseEntity.ok(response);
     }
 
-    // 별점 삭제
     @DeleteMapping("/{ratingId}")
+    @Operation(summary = "별점 삭제", description = "등록한 별점 삭제")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteRating(
             @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "별점 ID", example = "1")
             @PathVariable Long ratingId) {
 
         Long userId = getUserId(userDetails);
@@ -46,10 +61,12 @@ public class RatingController {
         return ResponseEntity.noContent().build();
     }
 
-    // 사용자가 준 별점 조회 (영화)
     @GetMapping("/my/movies/{movieId}")
+    @Operation(summary = "내 영화 별점 조회", description = "특정 영화에 대한 내 별점 조회")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<RatingDTO.Response> getMyMovieRating(
             @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId) {
 
         Long userId = getUserId(userDetails);
@@ -62,10 +79,12 @@ public class RatingController {
         return ResponseEntity.ok(rating);
     }
 
-    // 사용자가 준 별점 조회 (드라마)
     @GetMapping("/my/dramas/{dramaId}")
+    @Operation(summary = "내 드라마 별점 조회", description = "특정 드라마에 대한 내 별점 조회")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<RatingDTO.Response> getMyDramaRating(
             @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "드라마 ID", example = "1")
             @PathVariable Long dramaId) {
 
         Long userId = getUserId(userDetails);
@@ -78,25 +97,32 @@ public class RatingController {
         return ResponseEntity.ok(rating);
     }
 
-    // 영화 평균 별점 조회
     @GetMapping("/movies/{movieId}/average")
-    public ResponseEntity<RatingDTO.AverageResponse> getMovieAverageRating(@PathVariable Long movieId) {
+    @Operation(summary = "영화 평균 별점", description = "특정 영화의 평균 별점 조회")
+    public ResponseEntity<RatingDTO.AverageResponse> getMovieAverageRating(
+            @Parameter(description = "영화 ID", example = "1")
+            @PathVariable Long movieId) {
         RatingDTO.AverageResponse averageRating = ratingService.getMovieAverageRating(movieId);
         return ResponseEntity.ok(averageRating);
     }
 
-    // 드라마 평균 별점 조회
     @GetMapping("/dramas/{dramaId}/average")
-    public ResponseEntity<RatingDTO.AverageResponse> getDramaAverageRating(@PathVariable Long dramaId) {
+    @Operation(summary = "드라마 평균 별점", description = "특정 드라마의 평균 별점 조회")
+    public ResponseEntity<RatingDTO.AverageResponse> getDramaAverageRating(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long dramaId) {
         RatingDTO.AverageResponse averageRating = ratingService.getDramaAverageRating(dramaId);
         return ResponseEntity.ok(averageRating);
     }
 
-    // 영화별 별점 목록 조회
     @GetMapping("/movies/{movieId}")
+    @Operation(summary = "영화 별점 목록", description = "특정 영화의 모든 별점 목록 조회")
     public ResponseEntity<Page<RatingDTO.Response>> getMovieRatings(
+            @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId,
+            @Parameter(description = "페이지 번호", example = "0")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -105,37 +131,14 @@ public class RatingController {
         return ResponseEntity.ok(ratings);
     }
 
-    // 드라마별 별점 목록 조회
-    @GetMapping("/dramas/{dramaId}")
-    public ResponseEntity<Page<RatingDTO.Response>> getDramaRatings(
-            @PathVariable Long dramaId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RatingDTO.Response> ratings = ratingService.getDramaRatings(dramaId, pageable);
-
-        return ResponseEntity.ok(ratings);
-    }
-
-    // 사용자별 별점 목록 조회
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<Page<RatingDTO.Response>> getUserRatings(
-            @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RatingDTO.Response> ratings = ratingService.getUserRatings(userId, pageable);
-
-        return ResponseEntity.ok(ratings);
-    }
-
-    // 내가 준 별점 목록 조회
     @GetMapping("/my")
+    @Operation(summary = "내 별점 목록", description = "내가 등록한 모든 별점 목록 조회")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Page<RatingDTO.Response>> getMyRatings(
             @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "페이지 번호", example = "0")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = getUserId(userDetails);
@@ -145,25 +148,49 @@ public class RatingController {
         return ResponseEntity.ok(ratings);
     }
 
-    // 영화 별점 분포 조회
-    @GetMapping("/movies/{movieId}/distribution")
-    public ResponseEntity<Map<Integer, Long>> getMovieScoreDistribution(@PathVariable Long movieId) {
-        Map<Integer, Long> distribution = ratingService.getScoreDistribution(movieId, null);
-        return ResponseEntity.ok(distribution);
+    @GetMapping("/dramas/{dramaId}")
+    @Operation(summary = "드라마 별점 목록", description = "특정 드라마의 모든 별점 목록 조회")
+    public ResponseEntity<Page<RatingDTO.Response>> getDramaRatings(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long dramaId,
+            @Parameter(description = "페이지 번호", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RatingDTO.Response> ratings = ratingService.getDramaRatings(dramaId, pageable);
+
+        return ResponseEntity.ok(ratings);
     }
 
-    // 드라마 별점 분포 조회
-    @GetMapping("/dramas/{dramaId}/distribution")
-    public ResponseEntity<Map<Integer, Long>> getDramaScoreDistribution(@PathVariable Long dramaId) {
-        Map<Integer, Long> distribution = ratingService.getScoreDistribution(null, dramaId);
+    @GetMapping("/users/{userId}")
+    @Operation(summary = "사용자 별점 목록", description = "특정 사용자의 모든 별점 목록 조회")
+    public ResponseEntity<Page<RatingDTO.Response>> getUserRatings(
+            @Parameter(description = "사용자 ID", example = "1")
+            @PathVariable Long userId,
+            @Parameter(description = "페이지 번호", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RatingDTO.Response> ratings = ratingService.getUserRatings(userId, pageable);
+
+        return ResponseEntity.ok(ratings);
+    }
+
+    @GetMapping("/movies/{movieId}/distribution")
+    @Operation(summary = "영화 별점 분포", description = "특정 영화의 별점 분포 조회")
+    public ResponseEntity<Map<Integer, Long>> getMovieScoreDistribution(
+            @Parameter(description = "영화 ID", example = "1")
+            @PathVariable Long movieId) {
+        Map<Integer, Long> distribution = ratingService.getScoreDistribution(movieId, null);
         return ResponseEntity.ok(distribution);
     }
 
     // UserDetails에서 사용자 ID 추출하는 헬퍼 메서드
     private Long getUserId(UserDetails userDetails) {
-        // 실제 구현에서는 UserDetails의 구현체에 따라 달라질 수 있습니다
-        // 카카오 로그인을 사용하는 경우, CustomUserDetails에서 사용자 ID를 가져와야 합니다
-        // 예: CustomUserDetails가 User 엔티티의 ID를 반환하도록 구현
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getUserId();
         }

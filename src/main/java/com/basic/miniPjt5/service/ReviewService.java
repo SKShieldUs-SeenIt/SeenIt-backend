@@ -42,20 +42,31 @@ public class ReviewService {
         // 중복 리뷰 확인
         checkDuplicateReview(userId, requestDto);
 
-        Review review = Review.builder()
-                .content(requestDto.getContent())
-                .user(user)
-                .build();
+        Review review;
 
         // 영화 또는 드라마 설정
         if (requestDto.getMovieId() != null) {
             Movie movie = movieRepository.findById(requestDto.getMovieId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
-            review.setMovie(movie);
+
+            review = Review.createMovieReview(
+                    user,
+                    movie,
+                    requestDto.getTitle(),
+                    requestDto.getContent(),
+                    requestDto.getIsSpoiler()
+            );
         } else {
             Drama drama = dramaRepository.findById(requestDto.getDramaId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
-            review.setDrama(drama);
+
+            review = Review.createDramaReview(
+                    user,
+                    drama,
+                    requestDto.getTitle(),
+                    requestDto.getContent(),
+                    requestDto.getIsSpoiler()
+            );
         }
 
         Review savedReview = reviewRepository.save(review);
@@ -73,7 +84,11 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
+        // 리뷰 수정
+        review.setTitle(requestDto.getTitle());
         review.setContent(requestDto.getContent());
+        review.setIsSpoiler(requestDto.getIsSpoiler());
+
         return convertToResponseDto(review);
     }
 
@@ -138,6 +153,24 @@ public class ReviewService {
         return reviews.map(this::convertToListResponseDto);
     }
 
+    // 키워드 검색
+    public Page<ReviewDTO.SearchResponse> searchReviews(String keyword, Pageable pageable) {
+        Page<Review> reviews = reviewRepository.findByKeyword(keyword, pageable);
+        return reviews.map(review -> convertToSearchResponseDto(review, keyword));
+    }
+
+    // 좋아요 토글 (추가 기능)
+    @Transactional
+    public ReviewDTO.Response toggleLike(Long userId, Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // 실제로는 Like 엔티티를 통해 중복 체크해야 하지만, 여기서는 단순히 증가
+        review.increaseLikes();
+
+        return convertToResponseDto(review);
+    }
+
     // 요청 검증
     private void validateCreateRequest(ReviewDTO.CreateRequest requestDto) {
         if ((requestDto.getMovieId() == null && requestDto.getDramaId() == null) ||
@@ -163,18 +196,25 @@ public class ReviewService {
     private ReviewDTO.Response convertToResponseDto(Review review) {
         ReviewDTO.Response dto = new ReviewDTO.Response();
         dto.setId(review.getId());
+        dto.setTitle(review.getTitle());
         dto.setContent(review.getContent());
         dto.setUsername(review.getUser().getName());
         dto.setUserId(review.getUser().getUserId());
+        dto.setLikesCount(review.getLikesCount());
+        dto.setIsSpoiler(review.getIsSpoiler());
 
         if (review.getMovie() != null) {
             dto.setMovieId(review.getMovie().getId());
             dto.setMovieTitle(review.getMovie().getTitle());
+            dto.setMoviePosterPath(review.getMovie().getPosterPath());
+            dto.setContentType("MOVIE");
         }
 
         if (review.getDrama() != null) {
             dto.setDramaId(review.getDrama().getId());
             dto.setDramaTitle(review.getDrama().getTitle());
+            dto.setDramaPosterPath(review.getDrama().getPosterPath());
+            dto.setContentType("DRAMA");
         }
 
         dto.setCreatedAt(review.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
@@ -186,10 +226,14 @@ public class ReviewService {
     private ReviewDTO.ListResponse convertToListResponseDto(Review review) {
         ReviewDTO.ListResponse dto = new ReviewDTO.ListResponse();
         dto.setId(review.getId());
+        dto.setTitle(review.getTitle());
         dto.setContent(review.getContent().length() > 100 ?
                 review.getContent().substring(0, 100) + "..." :
                 review.getContent());
         dto.setUsername(review.getUser().getName());
+        dto.setUserId(review.getUser().getUserId());
+        dto.setLikesCount(review.getLikesCount());
+        dto.setIsSpoiler(review.getIsSpoiler());
         dto.setCreatedAt(review.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
         if (review.getMovie() != null) {
@@ -201,5 +245,38 @@ public class ReviewService {
         }
 
         return dto;
+    }
+
+    private ReviewDTO.SearchResponse convertToSearchResponseDto(Review review, String keyword) {
+        ReviewDTO.SearchResponse dto = new ReviewDTO.SearchResponse();
+        dto.setId(review.getId());
+        dto.setTitle(review.getTitle());
+        dto.setContent(review.getContent());
+        dto.setUsername(review.getUser().getName());
+        dto.setLikesCount(review.getLikesCount());
+        dto.setIsSpoiler(review.getIsSpoiler());
+        dto.setCreatedAt(review.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+
+        // 검색어 하이라이트 처리 (간단한 예시)
+        dto.setHighlightedTitle(highlightKeyword(review.getTitle(), keyword));
+        dto.setHighlightedContent(highlightKeyword(review.getContent(), keyword));
+
+        if (review.getMovie() != null) {
+            dto.setContentType("MOVIE");
+            dto.setContentTitle(review.getMovie().getTitle());
+            dto.setPosterPath(review.getMovie().getPosterPath());
+        } else {
+            dto.setContentType("DRAMA");
+            dto.setContentTitle(review.getDrama().getTitle());
+            dto.setPosterPath(review.getDrama().getPosterPath());
+        }
+
+        return dto;
+    }
+
+    // 검색어 하이라이트 처리 (간단한 예시)
+    private String highlightKeyword(String text, String keyword) {
+        if (text == null || keyword == null) return text;
+        return text.replaceAll("(?i)" + keyword, "<mark>$0</mark>");
     }
 }

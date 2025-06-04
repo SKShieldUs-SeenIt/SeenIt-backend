@@ -14,19 +14,24 @@ import java.util.Optional;
 @Repository
 public interface RatingRepository extends JpaRepository<Rating, Long> {
 
-    // 사용자별 특정 컨텐츠 별점 조회
-    Optional<Rating> findByUserIdAndMovieId(Long userId, Long movieId);
-    Optional<Rating> findByUserIdAndDramaId(Long userId, Long dramaId);
+    // 사용자별 특정 컨텐츠 별점 조회 - userId 필드명 명시
+    @Query("SELECT r FROM Rating r WHERE r.user.userId = :userId AND r.movie.id = :movieId")
+    Optional<Rating> findByUserIdAndMovieId(@Param("userId") Long userId, @Param("movieId") Long movieId);
+
+    @Query("SELECT r FROM Rating r WHERE r.user.userId = :userId AND r.drama.id = :dramaId")
+    Optional<Rating> findByUserIdAndDramaId(@Param("userId") Long userId, @Param("dramaId") Long dramaId);
+
+    @Query("SELECT r FROM Rating r WHERE r.user.userId = :userId")
+    List<Rating> findByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT r FROM Rating r WHERE r.user.userId = :userId ORDER BY r.createdAt DESC")
+    Page<Rating> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     // 컨텐츠별 모든 별점 조회
     List<Rating> findByMovieId(Long movieId);
     List<Rating> findByDramaId(Long dramaId);
     Page<Rating> findByMovieIdOrderByCreatedAtDesc(Long movieId, Pageable pageable);
     Page<Rating> findByDramaIdOrderByCreatedAtDesc(Long dramaId, Pageable pageable);
-
-    // 사용자별 모든 별점 조회
-    List<Rating> findByUserId(Long userId);
-    Page<Rating> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
     // 컨텐츠별 평균 별점 조회
     @Query("SELECT AVG(r.score) FROM Rating r WHERE r.movie.id = :movieId")
@@ -123,15 +128,16 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
         """, nativeQuery = true)
     List<Object[]> findAverageRatingByDramaGenre();
 
-    // 사용자별 평균 평점
-    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.user.id = :userId")
+    // 사용자별 평균 평점 - userId 필드명으로 수정
+    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.user.userId = :userId")
     Optional<Double> findAverageScoreByUserId(@Param("userId") Long userId);
 
-    // 사용자 평점 개수
-    long countByUserId(Long userId);
+    // 사용자 평점 개수 - @Query로 명시적 작성
+    @Query("SELECT COUNT(r) FROM Rating r WHERE r.user.userId = :userId")
+    Long countByUserId(@Param("userId") Long userId);
 
-    // 사용자 평점 분포
-    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.user.id = :userId GROUP BY r.score ORDER BY r.score")
+    // 사용자 평점 분포 - userId 필드명으로 수정
+    @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.user.userId = :userId GROUP BY r.score ORDER BY r.score")
     Object[][] findScoreDistributionByUserId(@Param("userId") Long userId);
 
     // 사용자가 10점을 준 작품들
