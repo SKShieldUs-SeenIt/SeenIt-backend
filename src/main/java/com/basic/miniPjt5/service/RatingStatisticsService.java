@@ -40,13 +40,19 @@ public class RatingStatisticsService {
         Map<Integer, Long> distribution = getScoreDistribution(movieId, null);
 
         return new RatingDTO.StatisticsResponse(
-                movieId,
-                "MOVIE",
-                movie.getTitle(),
-                roundToTwoDecimals(averageScore),
-                totalCount,
-                distribution,
-                null // 표준편차는 필요시 구현
+                movieId,                        // contentId
+                "MOVIE",                        // contentType
+                movie.getTitle(),               // contentTitle
+                movie.getPosterPath(),          // posterPath (필요시 null로 변경)
+                roundToTwoDecimals(averageScore), // averageScore
+                totalCount,                     // totalRatingCount
+                distribution,                   // scoreDistribution
+                null,                          // standardDeviation
+                null,                          // tmdbRating
+                null,                          // tmdbVoteCount
+                null,                          // highestScore
+                null,                          // lowestScore
+                null                           // recentTrends
         );
     }
 
@@ -62,13 +68,19 @@ public class RatingStatisticsService {
         Map<Integer, Long> distribution = getScoreDistribution(null, dramaId);
 
         return new RatingDTO.StatisticsResponse(
-                dramaId,
-                "DRAMA",
-                drama.getTitle(),
-                roundToTwoDecimals(averageScore),
-                totalCount,
-                distribution,
-                null
+                dramaId,                        // contentId
+                "DRAMA",                        // contentType
+                drama.getTitle(),               // contentTitle
+                drama.getPosterPath(),          // posterPath (필요시 null로 변경)
+                roundToTwoDecimals(averageScore), // averageScore
+                totalCount,                     // totalRatingCount
+                distribution,                   // scoreDistribution
+                null,                          // standardDeviation
+                null,                          // tmdbRating
+                null,                          // tmdbVoteCount
+                null,                          // highestScore
+                null,                          // lowestScore
+                null                           // recentTrends
         );
     }
 
@@ -106,7 +118,7 @@ public class RatingStatisticsService {
             Long count = ((Number) result[4]).longValue();
             
             results.add(new RatingDTO.SimpleRating(
-                    movieId, "MOVIE", title, roundToTwoDecimals(avgScore), count, posterPath
+                    movieId, "MOVIE", title, roundToTwoDecimals(avgScore), count, posterPath, null
             ));
         });
         
@@ -119,7 +131,7 @@ public class RatingStatisticsService {
             Long count = ((Number) result[4]).longValue();
             
             results.add(new RatingDTO.SimpleRating(
-                    dramaId, "DRAMA", title, roundToTwoDecimals(avgScore), count, posterPath
+                    dramaId, "DRAMA", title, roundToTwoDecimals(avgScore), count, posterPath, null
             ));
         });
 
@@ -228,7 +240,7 @@ public class RatingStatisticsService {
         Long count = ((Number) result[5]).longValue();
         
         return new RatingDTO.SimpleRating(
-                id, type, title, roundToTwoDecimals(avgScore), count, posterPath
+                id, type, title, roundToTwoDecimals(avgScore), count, posterPath, null
         );
     }
 

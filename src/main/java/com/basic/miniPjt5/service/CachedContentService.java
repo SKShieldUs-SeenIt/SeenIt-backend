@@ -54,7 +54,7 @@ public class CachedContentService {
     @Cacheable(value = "moviesByGenre", key = "#genreId + '_' + #page + '_' + #size")
     public Page<Movie> getMoviesByGenre(Long genreId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("voteAverage").descending());
-        return movieRepository.findByGenres_Id(genreId, pageable);
+        return movieRepository.findByGenreId(genreId, pageable);
     }
     
     @Cacheable(value = "dramasByGenre", key = "#genreId + '_' + #page + '_' + #size")
