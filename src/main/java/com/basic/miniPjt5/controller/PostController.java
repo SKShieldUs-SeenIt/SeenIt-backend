@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -80,7 +79,7 @@ public class PostController {
     }
 
 //    input type hidden으로 contentType, contentId
-@Operation(summary = "게시글 생성", description = "게시글 생성(제목, 내용, 이미지, 콘텐츠 정보(타입, ID 값), 사용자 ID가 필요합니다.", security = @SecurityRequirement(name = "bearerAuth"))
+@Operation(summary = "게시글 생성", description = "게시글 생성(제목, 내용, 이미지, 콘텐츠 정보(타입, ID 값), 사용자 ID가 필요합니다.")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "게시글 생성 성공",
                 content = @Content(schema = @Schema(implementation = PostDTO.Response.class))),
@@ -104,7 +103,7 @@ public class PostController {
         return ResponseEntity.ok(createPost);
     }
 
-    @Operation(summary = "게시글 수정", description = "게시글 수정(코드, 제목, 내용, 이미지, 사용자 ID가 필요합니다. 이미지는 유지,변경,삭제할 수 있습니다", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "게시글 수정", description = "게시글 수정(코드, 제목, 내용, 이미지, 사용자 ID가 필요합니다. 이미지는 유지,변경,삭제할 수 있습니다")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "게시글 수정 성공",
                     content = @Content(schema = @Schema(implementation = PostDTO.Response.class))),
@@ -135,7 +134,7 @@ public class PostController {
         return ResponseEntity.ok(updatedPost);
     }
 
-    @Operation(summary = "게시글 삭제", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "게시글 삭제")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "게시글 삭제 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자 (유효한 JWT 토큰 필요)", // 인증 실패 시 401
