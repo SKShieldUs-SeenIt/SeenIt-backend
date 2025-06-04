@@ -75,9 +75,17 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long id) {
+    public void deleteComment(Long id, Long userId) {
         Comment comment = commentRepository.findCommentById(id)
                 .orElseThrow(()->new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!comment.getUser().getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 삭제할 수 있습니다.");
+        }
+
         commentRepository.delete(comment);
     }
 }

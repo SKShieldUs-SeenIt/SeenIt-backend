@@ -3,6 +3,7 @@ package com.basic.miniPjt5.DTO;
 import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -16,16 +17,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CommentDTO {
-
+    @Schema(description = "댓글 생성 DTO")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class createRequest {
+        @Schema(description = "댓글 내용")
         @NotBlank(message = "내용은 필수 입력사항 입니다.")
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
         private String content;
 
+        @Schema(description = "댓글 부모 Id(댓글, 대댓글 확인용)")
         private Long parentId;
 
         public Comment toEntity(User user, Post post) {
@@ -37,28 +40,46 @@ public class CommentDTO {
         }
     }
 
+    @Schema(description = "댓글 수정 DTO")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class updateRequest {
+        @Schema(description = "댓글 내용")
         @NotBlank(message = "내용은 필수 입력사항 입니다.")
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
         private String content;
     }
 
+    @Schema(description = "댓글 Response DTO")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class Response {
+        @Schema(description = "댓글 고유 Id")
         private Long id;
+
+        @Schema(description = "댓글 내용")
         private String content;
+
+        @Schema(description = "댓글 부모 Id(댓글, 대댓글 확인용)")
         private Long parentCommentId;
+
+        @Schema(description = "대댓글 List")
         private List<Response> childComments;
+
+        @Schema(description = "생성 시간")
         private LocalDateTime createdAt;
+
+        @Schema(description = "수정 시간")
         private LocalDateTime updatedAt;
+
+        @Schema(description = "작성한 사용자")
         private UserDTO.SimpleResponse user;
+
+        @Schema(description = "연결된 게시글 Id")
         private Long postId;
 
         public static CommentDTO.Response fromEntity(Comment comment) {
