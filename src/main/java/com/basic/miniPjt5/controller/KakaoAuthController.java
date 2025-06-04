@@ -51,7 +51,7 @@ public class KakaoAuthController {
             String jwtToken = loginResponse.getAccessToken();
 
             // ✅ 프론트로 redirect (JWT 전달)
-            String redirectUrl = "http://localhost:5173/kakao/complete?token=" + jwtToken;
+            String redirectUrl = "http://localhost:5173/kakao/callback?token=" + jwtToken;
 
             response.sendRedirect(redirectUrl); // 302 Redirect 자동 처리됨
 
