@@ -57,7 +57,7 @@ public class ContentController {
                 .query(query)
                 .contentType(contentType)
                 .useApi(useApi)
-                .sortBy("popularity")
+                .sortBy("voteAverage")
                 .sortDirection("desc")
                 .build();
 
