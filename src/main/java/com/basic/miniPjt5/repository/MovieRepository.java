@@ -58,4 +58,14 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             @Param("title") String title,
             @Param("genreIds") List<Long> genreIds,
             Pageable pageable);
+
+    // ⭐ 통합 평점 기준 정렬된 영화 목록
+    @Query("SELECT m FROM Movie m WHERE m.combinedRating IS NOT NULL ORDER BY m.combinedRating DESC")
+    List<Movie> findTop20ByOrderByCombinedRatingDesc();
+
+    // ⭐ 통합 평점 범위 검색
+    @Query("SELECT m FROM Movie m WHERE COALESCE(m.combinedRating, m.voteAverage) BETWEEN :minRating AND :maxRating")
+    Page<Movie> findByCombinedRatingBetween(@Param("minRating") Double minRating,
+                                            @Param("maxRating") Double maxRating,
+                                            Pageable pageable);
 }

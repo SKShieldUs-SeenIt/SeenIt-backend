@@ -52,4 +52,14 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
 
     // 평점 범위 검색
     Page<Drama> findByVoteAverageBetween(Double minRating, Double maxRating, Pageable pageable);
+
+    // ⭐ 통합 평점 기준 정렬된 드라마 목록
+    @Query("SELECT d FROM Drama d WHERE d.combinedRating IS NOT NULL ORDER BY d.combinedRating DESC")
+    List<Drama> findTop20ByOrderByCombinedRatingDesc();
+
+    // ⭐ 통합 평점 범위 검색
+    @Query("SELECT d FROM Drama d WHERE COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+    Page<Drama> findByCombinedRatingBetween(@Param("minRating") Double minRating,
+                                            @Param("maxRating") Double maxRating,
+                                            Pageable pageable);
 }

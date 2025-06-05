@@ -60,6 +60,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), movie);
                 rating = ratingRepository.save(rating);
             }
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
         } else {
             // 드라마 별점 처리
             Drama drama = dramaRepository.findById(requestDto.getDramaId())
@@ -76,6 +78,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), drama);
                 rating = ratingRepository.save(rating);
             }
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
         }
 
         return convertToResponseDto(rating);
@@ -92,7 +96,21 @@ public class RatingService {
             throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
         }
 
+        Movie movie = rating.getMovie();
+        Drama drama = rating.getDrama();
+
         ratingRepository.delete(rating);
+
+        // ⭐ 평점 재계산
+        if (movie != null) {
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
+        }
+        if (drama != null) {
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
+        }
+
     }
 
     // 사용자가 준 별점 조회
@@ -113,16 +131,20 @@ public class RatingService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByMovieId(movieId).orElse(0.0);
-        Long ratingCount = ratingRepository.countByMovieId(movieId);
+        // 사용자 평점만
+        Double combinedRating = movie.getCombinedRating() != null ?
+                movie.getCombinedRating() : movie.getVoteAverage();
+        Long userRatingCount = ratingRepository.countByMovieId(movieId);
+
+        Long totalRatingCount = (long) movie.getVoteCount() + userRatingCount;
 
         return RatingDTO.AverageResponse.builder()
                 .contentId(movieId)
-                .contentType("Movie")
+                .contentType("MOVIE")
                 .contentTitle(movie.getTitle())
                 .posterPath(movie.getPosterPath())
-                .averageScore(roundToTwoDecimals(averageScore))
-                .ratingCount(ratingCount)
+                .averageScore(roundToTwoDecimals(combinedRating))  // ⭐ 통합 평점 사용
+                .ratingCount(totalRatingCount)  // ⭐ 전체 투표 수
                 .tmdbRating(movie.getVoteAverage())
                 .build();
 
@@ -133,16 +155,22 @@ public class RatingService {
         Drama drama = dramaRepository.findById(dramaId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByDramaId(dramaId).orElse(0.0);
-        Long ratingCount = ratingRepository.countByDramaId(dramaId);
+        Double combinedRating = drama.getCombinedRating() != null ?
+                drama.getCombinedRating() : drama.getVoteAverage();
+
+        // 사용자 평점 통계
+        Long userRatingCount = ratingRepository.countByDramaId(dramaId);
+
+        // 전체 투표 수 = TMDB 투표 수 + 사용자 투표 수
+        Long totalRatingCount = (long) drama.getVoteCount() + userRatingCount;
 
         return RatingDTO.AverageResponse.builder()
                 .contentId(dramaId)
                 .contentType("DRAMA")
                 .contentTitle(drama.getTitle())
                 .posterPath(drama.getPosterPath())
-                .averageScore(roundToTwoDecimals(averageScore))
-                .ratingCount(ratingCount)
+                .averageScore(roundToTwoDecimals(combinedRating))  // ⭐ 통합 평점 사용
+                .ratingCount(totalRatingCount)  // ⭐ 전체 투표 수
                 .tmdbRating(drama.getVoteAverage())
                 .build();
     }

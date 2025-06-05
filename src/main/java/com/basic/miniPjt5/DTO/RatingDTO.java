@@ -130,13 +130,13 @@ public class RatingDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 별점", example = "8.7")
-        private Double averageScore;
+        @Schema(description = "통합 평균 별점 (TMDB + 사용자)", example = "8.7")
+        private Double averageScore;  // 통합 평점으로 사용
 
-        @Schema(description = "총 별점 개수", example = "1234")
+        @Schema(description = "총 별점 개수 (TMDB + 사용자)", example = "1234")
         private Long totalRatingCount;
 
-        @Schema(description = "점수별 분포", example = "{\"1\": 5, \"2\": 10, \"3\": 20, ...}")
+        @Schema(description = "사용자 점수별 분포", example = "{\"1\": 5, \"2\": 10, \"3\": 20, ...}")
         private Map<Integer, Long> scoreDistribution;
 
         @Schema(description = "표준편차", example = "1.2")
@@ -148,14 +148,27 @@ public class RatingDTO {
         @Schema(description = "TMDB 투표 수", example = "5678")
         private Integer tmdbVoteCount;
 
-        @Schema(description = "최고 점수", example = "10")
+        @Schema(description = "사용자 평점 중 최고 점수", example = "10")
         private Integer highestScore;
 
-        @Schema(description = "최저 점수", example = "1")
+        @Schema(description = "사용자 평점 중 최저 점수", example = "1")
         private Integer lowestScore;
 
         @Schema(description = "최근 평점 동향")
         private List<RecentRatingTrend> recentTrends;
+
+        // 추가 필드들을 위해 @JsonInclude 사용하여 기존 스키마 유지하면서 확장
+        @Schema(description = "사용자 평균 별점", example = "8.2")
+        private Double userAverageScore;
+
+        @Schema(description = "사용자 별점 개수", example = "150")
+        private Integer userRatingCount;
+
+        @Schema(description = "TMDB 총점", example = "48150.5")
+        private Double tmdbTotalScore;
+
+        @Schema(description = "사용자 총점", example = "1230")
+        private Double userTotalScore;
     }
 
     @Schema(description = "간단한 별점 정보 DTO")
