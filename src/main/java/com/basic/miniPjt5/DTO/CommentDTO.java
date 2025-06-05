@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CommentDTO {
-    @Schema(description = "댓글 생성 DTO")
+    @Schema(description = "댓글 생성 DTO", name = "CommentCreateRequest")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -40,7 +40,7 @@ public class CommentDTO {
         }
     }
 
-    @Schema(description = "댓글 수정 DTO")
+    @Schema(description = "댓글 수정 DTO", name = "CommentUpdateRequest")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -52,7 +52,7 @@ public class CommentDTO {
         private String content;
     }
 
-    @Schema(description = "댓글 Response DTO")
+    @Schema(description = "댓글 Response DTO", name = "CommentResponse")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
