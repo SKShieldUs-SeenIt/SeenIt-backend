@@ -74,6 +74,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findNonSpoilerReviewsByDramaId(@Param("dramaId") Long dramaId, Pageable pageable);
 
     // 텍스트 검색 (제목 + 내용)
-    @Query("SELECT r FROM Review r WHERE (LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(r.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY r.createdAt DESC")
+    @Query("SELECT r FROM Review r WHERE (LOWER(r.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY r.createdAt DESC")
     Page<Review> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

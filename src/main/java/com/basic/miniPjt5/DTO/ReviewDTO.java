@@ -70,9 +70,6 @@ public class ReviewDTO {
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
 
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
-
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고 연출이 훌륭했습니다...")
         private String content;
 
@@ -127,9 +124,6 @@ public class ReviewDTO {
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
 
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
-
         @Schema(description = "리뷰 내용 (요약)", example = "스토리가 탄탄하고...")
         private String content;
 
@@ -165,9 +159,6 @@ public class ReviewDTO {
 
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
-
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
 
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고...")
         private String content;
