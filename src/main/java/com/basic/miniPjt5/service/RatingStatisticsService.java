@@ -38,12 +38,12 @@ public class RatingStatisticsService {
 
         // 사용자 평점 통계
         List<Rating> userRatings = movie.getRatings();
-        Map<Integer, Long> distribution = getScoreDistribution(movieId, null);
+        Map<String, Long> distribution = getScoreDistribution(movieId, null);
 
         // 사용자 평점 계산
         Double userAverage = movie.getUserAverageRating();
         Double userTotalScore = userRatings.isEmpty() ? 0.0 :
-                (double) userRatings.stream().mapToInt(Rating::getScore).sum();
+                (double) userRatings.stream().mapToDouble(rating -> rating.getScore().doubleValue()).sum();
 
         // TMDB 통계
         Double tmdbTotalScore = movie.getVoteAverage() * movie.getVoteCount();
@@ -52,10 +52,17 @@ public class RatingStatisticsService {
         Double combinedRating = movie.calculateCombinedRating();
 
         // 사용자 평점의 최고/최저점
-        Integer highestScore = userRatings.isEmpty() ? null :
-                userRatings.stream().mapToInt(Rating::getScore).max().orElse(0);
-        Integer lowestScore = userRatings.isEmpty() ? null :
-                userRatings.stream().mapToInt(Rating::getScore).min().orElse(0);
+        BigDecimal highestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .max(BigDecimal::compareTo)
+                        .orElse(null);
+
+        BigDecimal lowestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .min(BigDecimal::compareTo)
+                        .orElse(null);
 
         return RatingDTO.StatisticsResponse.builder()
                 .contentId(movieId)
@@ -87,19 +94,26 @@ public class RatingStatisticsService {
 
         // 사용자 평점 통계
         List<Rating> userRatings = drama.getRatings();
-        Map<Integer, Long> distribution = getScoreDistribution(null, dramaId);
+        Map<String, Long> distribution = getScoreDistribution(null, dramaId);
 
         Double userAverage = drama.getUserAverageRating();
         Double userTotalScore = userRatings.isEmpty() ? 0.0 :
-                (double) userRatings.stream().mapToInt(Rating::getScore).sum();
+                (double) userRatings.stream().mapToDouble(rating -> rating.getScore().doubleValue()).sum();
 
         Double tmdbTotalScore = drama.getVoteAverage() * drama.getVoteCount();
         Double combinedRating = drama.calculateCombinedRating();
 
-        Integer highestScore = userRatings.isEmpty() ? null :
-                userRatings.stream().mapToInt(Rating::getScore).max().orElse(0);
-        Integer lowestScore = userRatings.isEmpty() ? null :
-                userRatings.stream().mapToInt(Rating::getScore).min().orElse(0);
+        BigDecimal highestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .max(BigDecimal::compareTo)
+                        .orElse(null);
+
+        BigDecimal lowestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .min(BigDecimal::compareTo)
+                        .orElse(null);
 
         return RatingDTO.StatisticsResponse.builder()
                 .contentId(dramaId)
@@ -246,26 +260,38 @@ public class RatingStatisticsService {
     }
 
     // 헬퍼 메서드들
-    private Map<Integer, Long> getScoreDistribution(Long movieId, Long dramaId) {
+    private Map<String, Long> getScoreDistribution(Long movieId, Long dramaId) {
         Object[][] distribution = null;
-        
+
         if (movieId != null) {
             distribution = ratingRepository.findScoreDistributionByMovieId(movieId);
         } else if (dramaId != null) {
             distribution = ratingRepository.findScoreDistributionByDramaId(dramaId);
         }
-        
-        Map<Integer, Long> result = new HashMap<>();
+
+        Map<String, Long> result = new HashMap<>();
+
+        // 0.5~5.0점 초기화
         for (int i = 1; i <= 10; i++) {
-            result.put(i, 0L);
+            BigDecimal score = new BigDecimal(i).divide(new BigDecimal("2"));
+            result.put(score.toPlainString(), 0L);
         }
-        
+
         if (distribution != null) {
             for (Object[] row : distribution) {
-                result.put((Integer) row[0], ((Number) row[1]).longValue());
+                if (row[0] != null && row[1] != null) {
+                    BigDecimal score;
+                    if (row[0] instanceof BigDecimal) {
+                        score = (BigDecimal) row[0];
+                    } else {
+                        score = new BigDecimal(row[0].toString());
+                    }
+                    Long count = ((Number) row[1]).longValue();
+                    result.put(score.toPlainString(), count);
+                }
             }
         }
-        
+
         return result;
     }
 
@@ -292,9 +318,13 @@ public class RatingStatisticsService {
     private Double calculateStandardDeviation(List<Rating> ratings) {
         if (ratings.size() < 2) return null;
 
-        double mean = ratings.stream().mapToInt(Rating::getScore).average().orElse(0.0);
+        double mean = ratings.stream()
+                .mapToDouble(rating -> rating.getScore().doubleValue())
+                .average()
+                .orElse(0.0);
+
         double variance = ratings.stream()
-                .mapToDouble(r -> Math.pow(r.getScore() - mean, 2))
+                .mapToDouble(rating -> Math.pow(rating.getScore().doubleValue() - mean, 2))
                 .average()
                 .orElse(0.0);
 

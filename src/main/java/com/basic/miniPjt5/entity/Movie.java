@@ -65,11 +65,11 @@ public class Movie implements Content {
     // 통합 평점 계산
     public Double calculateCombinedRating() {
         // TMDB 총점 = voteAverage * voteCount
-        double tmdbTotalScore = this.voteAverage * this.voteCount;
+        double tmdbTotalScore = this.voteAverage/2 * this.voteCount;
 
         // 사용자 총점
         double userTotalScore = ratings.stream()
-                .mapToInt(Rating::getScore)
+                .mapToDouble(rating -> rating.getScore().doubleValue())
                 .sum();
 
         // 전체 투표 수
@@ -88,7 +88,7 @@ public class Movie implements Content {
         if (ratings.isEmpty()) return null;
 
         return ratings.stream()
-                .mapToInt(Rating::getScore)
+                .mapToDouble(rating -> rating.getScore().doubleValue())
                 .average()
                 .orElse(0.0);
     }

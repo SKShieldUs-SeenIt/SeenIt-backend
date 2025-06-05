@@ -158,18 +158,18 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.user.userId = :userId GROUP BY r.score ORDER BY r.score")
     Object[][] findScoreDistributionByUserId(@Param("userId") Long userId);
 
-    // 사용자가 10점을 준 작품들
+    // 사용자가 5점을 준 작품들
     @Query(value = """
-        SELECT 'MOVIE' as content_type, m.title, r.score, r.created_at
-        FROM ratings r 
-        INNER JOIN movies m ON r.movie_id = m.movie_id 
-        WHERE r.user_id = :userId AND r.score = 10
-        UNION ALL
-        SELECT 'DRAMA' as content_type, d.title, r.score, r.created_at
-        FROM ratings r 
-        INNER JOIN dramas d ON r.drama_id = d.drama_id 
-        WHERE r.user_id = :userId AND r.score = 10
-        ORDER BY created_at DESC
-        """, nativeQuery = true)
+    SELECT 'MOVIE' as content_type, m.title, r.score, r.created_at
+    FROM ratings r 
+    INNER JOIN movies m ON r.movie_id = m.movie_id 
+    WHERE r.user_id = :userId AND r.score = 5.0
+    UNION ALL
+    SELECT 'DRAMA' as content_type, d.title, r.score, r.created_at
+    FROM ratings r 
+    INNER JOIN dramas d ON r.drama_id = d.drama_id 
+    WHERE r.user_id = :userId AND r.score = 5.0
+    ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<Object[]> findUserTopRatedContents(@Param("userId") Long userId);
 }
