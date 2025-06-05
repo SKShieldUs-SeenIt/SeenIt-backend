@@ -40,7 +40,7 @@ public class WatchedController {
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         userWatchedService.markAsWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, movieId);
         return ResponseEntity.ok("영화를 시청 완료로 표시했습니다.");
@@ -52,11 +52,11 @@ public class WatchedController {
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         if (userPrincipal == null) {
             return ResponseEntity.ok(false); // 로그인하지 않은 경우 false 반환
         }
-        
+
         boolean isWatched = userWatchedService.isWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, movieId);
         return ResponseEntity.ok(isWatched);
     }
@@ -67,7 +67,7 @@ public class WatchedController {
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         userWatchedService.removeFromWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, movieId);
         return ResponseEntity.ok("영화 시청 기록을 삭제했습니다.");
@@ -81,7 +81,7 @@ public class WatchedController {
             @Parameter(description = "드라마 ID", example = "1")
             @PathVariable Long dramaId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         userWatchedService.markAsWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.DRAMA, dramaId);
         return ResponseEntity.ok("드라마를 시청 완료로 표시했습니다.");
@@ -93,11 +93,11 @@ public class WatchedController {
             @Parameter(description = "드라마 ID", example = "1")
             @PathVariable Long dramaId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         if (userPrincipal == null) {
             return ResponseEntity.ok(false);
         }
-        
+
         boolean isWatched = userWatchedService.isWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.DRAMA, dramaId);
         return ResponseEntity.ok(isWatched);
     }
@@ -108,7 +108,7 @@ public class WatchedController {
             @Parameter(description = "드라마 ID", example = "1")
             @PathVariable Long dramaId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         userWatchedService.removeFromWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.DRAMA, dramaId);
         return ResponseEntity.ok("드라마 시청 기록을 삭제했습니다.");
@@ -124,7 +124,7 @@ public class WatchedController {
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         Page<UserWatched> watchedMovies = userWatchedService.getWatchedMovies(userPrincipal.getKakaoId(), page, size);
         return ResponseEntity.ok(watchedMovies);
@@ -138,7 +138,7 @@ public class WatchedController {
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         Page<UserWatched> watchedDramas = userWatchedService.getWatchedDramas(userPrincipal.getKakaoId(), page, size);
         return ResponseEntity.ok(watchedDramas);
@@ -152,7 +152,7 @@ public class WatchedController {
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         Page<UserWatched> allWatched = userWatchedService.getAllWatchedContents(userPrincipal.getKakaoId(), page, size);
         return ResponseEntity.ok(allWatched);
@@ -164,7 +164,7 @@ public class WatchedController {
     @Operation(summary = "시청한 영화 ID 목록", description = "사용자가 시청한 영화의 ID 목록을 반환합니다.")
     public ResponseEntity<List<Long>> getWatchedMovieIds(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         List<Long> movieIds = userWatchedService.getWatchedMovieIds(userPrincipal.getKakaoId());
         return ResponseEntity.ok(movieIds);
@@ -174,7 +174,7 @@ public class WatchedController {
     @Operation(summary = "시청한 드라마 ID 목록", description = "사용자가 시청한 드라마의 ID 목록을 반환합니다.")
     public ResponseEntity<List<Long>> getWatchedDramaIds(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         List<Long> dramaIds = userWatchedService.getWatchedDramaIds(userPrincipal.getKakaoId());
         return ResponseEntity.ok(dramaIds);
@@ -186,7 +186,7 @@ public class WatchedController {
     @Operation(summary = "시청 통계", description = "사용자의 시청 통계를 조회합니다.")
     public ResponseEntity<UserWatchedService.WatchedStats> getWatchedStats(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
+
         validateUser(userPrincipal);
         UserWatchedService.WatchedStats stats = userWatchedService.getWatchedStats(userPrincipal.getKakaoId());
         return ResponseEntity.ok(stats);
