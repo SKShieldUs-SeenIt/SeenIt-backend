@@ -181,10 +181,19 @@ public class RatingController {
 
     @GetMapping("/movies/{movieId}/distribution")
     @Operation(summary = "영화 별점 분포", description = "특정 영화의 별점 분포 조회")
-    public ResponseEntity<Map<Integer, Long>> getMovieScoreDistribution(
+    public ResponseEntity<Map<String, Long>> getMovieScoreDistribution(
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId) {
-        Map<Integer, Long> distribution = ratingService.getScoreDistribution(movieId, null);
+        Map<String, Long> distribution = ratingService.getScoreDistribution(movieId, null);
+        return ResponseEntity.ok(distribution);
+    }
+
+    @GetMapping("/dramas/{dramaId}/distribution")
+    @Operation(summary = "드라마 별점 분포", description = "특정 드라마의 별점 분포 조회")
+    public ResponseEntity<Map<String, Long>> getDramaScoreDistribution(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long dramaId) {
+        Map<String, Long> distribution = ratingService.getScoreDistribution(null, dramaId);
         return ResponseEntity.ok(distribution);
     }
 }

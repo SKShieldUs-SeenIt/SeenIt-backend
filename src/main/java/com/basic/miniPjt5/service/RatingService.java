@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -209,42 +210,47 @@ public class RatingService {
     }
 
     // 별점 분포 조회
-    public Map<Integer, Long> getScoreDistribution(Long movieId, Long dramaId) {
+    public Map<String, Long> getScoreDistribution(Long movieId, Long dramaId) {
         Object[][] distribution = null;
 
         if (movieId != null) {
-            // 영화 존재 확인
             if (!movieRepository.existsById(movieId)) {
                 throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
             }
             distribution = ratingRepository.findScoreDistributionByMovieId(movieId);
         } else if (dramaId != null) {
-            // 드라마 존재 확인
             if (!dramaRepository.existsById(dramaId)) {
                 throw new BusinessException(ErrorCode.DRAMA_NOT_FOUND);
             }
             distribution = ratingRepository.findScoreDistributionByDramaId(dramaId);
         }
 
-        Map<Integer, Long> result = new HashMap<>();
+        Map<String, Long> result = new HashMap<>();
 
-        // 1~10점 초기화
+        // 0.5~5.0점 초기화 (0.5 단위)
         for (int i = 1; i <= 10; i++) {
-            result.put(i, 0L);
+            BigDecimal score = new BigDecimal(i).divide(new BigDecimal("2"));
+            result.put(score.toPlainString(), 0L);
         }
 
         // 실제 데이터 입력
         if (distribution != null) {
             for (Object[] row : distribution) {
-                Integer score = (Integer) row[0];
-                Long count = ((Number) row[1]).longValue();
-                result.put(score, count);
+                if (row[0] != null && row[1] != null) {
+                    BigDecimal score;
+                    if (row[0] instanceof BigDecimal) {
+                        score = (BigDecimal) row[0];
+                    } else {
+                        score = new BigDecimal(row[0].toString());
+                    }
+                    Long count = ((Number) row[1]).longValue();
+                    result.put(score.toPlainString(), count);
+                }
             }
         }
 
         return result;
     }
-
     // 요청 검증
     private void validateRatingRequest(RatingDTO.Request requestDto) {
         if ((requestDto.getMovieId() == null && requestDto.getDramaId() == null) ||

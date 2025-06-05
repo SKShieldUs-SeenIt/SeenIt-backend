@@ -1,12 +1,16 @@
 package com.basic.miniPjt5.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "ratings",
@@ -25,6 +29,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 public class Rating extends BaseEntity {
 
+    private static final BigDecimal MIN_SCORE = new BigDecimal("0.5");
+    private static final BigDecimal MAX_SCORE = new BigDecimal("5");
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rating_id")
@@ -32,9 +39,9 @@ public class Rating extends BaseEntity {
 
     // 별점 점수 (1~10)
     @Column(nullable = false)
-    @Min(1)
-    @Max(10)
-    private int score;
+    @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+    @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+    private BigDecimal score;
 
     // 작성자 (User FK)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,18 +59,19 @@ public class Rating extends BaseEntity {
     private Drama drama;
 
     // 별점 수정 메서드
-    public void updateScore(int newScore) {
-        if (newScore >= 1 && newScore <= 10) {
+    public void updateScore(BigDecimal newScore) {
+        if (newScore.compareTo(MIN_SCORE) >= 0 &&
+                newScore.compareTo(MAX_SCORE) <= 0) {
             this.score = newScore;
         } else {
-            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
+            throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
         }
     }
 
     // 생성자 - 영화 별점용
-    public Rating(User user, int score, Movie movie) {
-        if (score < 1 || score > 10) {
-            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
+    public Rating(User user, BigDecimal score, Movie movie) {
+        if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
+            throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
         }
         this.user = user;
         this.score = score;
@@ -71,9 +79,9 @@ public class Rating extends BaseEntity {
     }
 
     // 생성자 - 드라마 별점용
-    public Rating(User user, int score, Drama drama) {
-        if (score < 1 || score > 10) {
-            throw new IllegalArgumentException("별점은 1~10 사이여야 합니다.");
+    public Rating(User user, BigDecimal score, Drama drama) {
+        if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
+            throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
         }
         this.user = user;
         this.score = score;

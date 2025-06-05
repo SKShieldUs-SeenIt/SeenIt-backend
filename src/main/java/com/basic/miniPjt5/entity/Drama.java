@@ -67,9 +67,9 @@ public class Drama implements Content {
 
     // 통합 평점 계산 (Movie와 동일)
     public Double calculateCombinedRating() {
-        double tmdbTotalScore = this.voteAverage * this.voteCount;
+        double tmdbTotalScore = this.voteAverage/2 * this.voteCount;
         double userTotalScore = ratings.stream()
-                .mapToInt(Rating::getScore)
+                .mapToDouble(rating -> rating.getScore().doubleValue())
                 .sum();
 
         int totalVotes = this.voteCount + ratings.size();
@@ -82,7 +82,7 @@ public class Drama implements Content {
     public Double getUserAverageRating() {
         if (ratings.isEmpty()) return null;
         return ratings.stream()
-                .mapToInt(Rating::getScore)
+                .mapToDouble(rating -> rating.getScore().doubleValue())
                 .average()
                 .orElse(0.0);
     }

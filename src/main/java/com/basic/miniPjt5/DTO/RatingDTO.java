@@ -43,7 +43,7 @@ public class RatingDTO {
         private Long id;
 
         @Schema(description = "별점", example = "8")
-        private Integer score;
+        private BigDecimal score;
 
         @Schema(description = "사용자명", example = "홍길동")
         private String username;
@@ -135,8 +135,8 @@ public class RatingDTO {
         @Schema(description = "총 별점 개수 (TMDB + 사용자)", example = "1234")
         private Long totalRatingCount;
 
-        @Schema(description = "사용자 점수별 분포", example = "{\"1\": 5, \"2\": 10, \"3\": 20, ...}")
-        private Map<Integer, Long> scoreDistribution;
+        @Schema(description = "사용자 점수별 분포", example = "{\"0.5\": 5, \"1.0\": 10, \"1.5\": 20, ...}")
+        private Map<String, Long> scoreDistribution;
 
         @Schema(description = "표준편차", example = "1.2")
         private Double standardDeviation;
@@ -147,11 +147,11 @@ public class RatingDTO {
         @Schema(description = "TMDB 투표 수", example = "5678")
         private Integer tmdbVoteCount;
 
-        @Schema(description = "사용자 평점 중 최고 점수", example = "10")
-        private Integer highestScore;
+        @Schema(description = "사용자 평점 중 최고 점수", example = "5")
+        private BigDecimal highestScore;
 
-        @Schema(description = "사용자 평점 중 최저 점수", example = "1")
-        private Integer lowestScore;
+        @Schema(description = "사용자 평점 중 최저 점수", example = "0.5")
+        private BigDecimal lowestScore;
 
         @Schema(description = "최근 평점 동향")
         private List<RecentRatingTrend> recentTrends;
