@@ -14,7 +14,7 @@ public class UserStatusUpdateRequest {
     @Schema(
             description = "변경할 사용자 상태",
             example = "SUSPENDED",
-            allowableValues = {"ACTIVE", "SUSPENDED", "DELETED"}
+            allowableValues = {"ACTIVE", "SUSPENDED", "WITHDRAWN", "DELETED"}
     )
     private UserStatus status;
 }

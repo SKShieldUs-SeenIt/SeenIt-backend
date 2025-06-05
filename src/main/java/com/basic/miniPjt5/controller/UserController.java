@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "마이페이지", description = "사용자 개인의 정보 조회, 변경, 탈퇴 요청 API")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -77,7 +78,7 @@ public class UserController {
     }
 
     // ✅ DELETE: 사용자 탈퇴 요청(Soft Delete 방식)
-    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 계정을 비활성화(soft delete) 처리")
+    @Operation(summary = "회원 탈퇴 요청", description = "현재 로그인한 사용자의 계정을 비활성화(soft delete) 처리")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "탈퇴 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")

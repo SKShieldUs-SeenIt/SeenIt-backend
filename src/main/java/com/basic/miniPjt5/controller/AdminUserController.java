@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/admin/users")
+@Tag(name = "관리자", description = "전체 사용자 조회 및 상태 변경 관련 API")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminUserController {

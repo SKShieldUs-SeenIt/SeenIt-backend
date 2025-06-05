@@ -21,6 +21,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "로그인", description = "카카오 로그인 콜백 처리 API")
 @RequiredArgsConstructor
 @Slf4j
 public class KakaoAuthController {
@@ -28,7 +29,7 @@ public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
 
     // ✅ GET: 카카오 로그인 콜백 처리
-    @Operation(summary = "카카오 로그인 콜백", description = "카카오 인가 코드를 받아 access token을 발급하고 JWT를 생성하여 프론트엔드로 리다이렉트합니다.")
+    @Operation(summary = "카카오 로그인 콜백", description = "카카오 인가 코드를 받아 access token을 발급하고 JWT를 생성하여 프론트엔드로 리다이렉트")
     @ApiResponses({
             @ApiResponse(responseCode = "302", description = "JWT 토큰과 함께 프론트로 리다이렉트 성공"),
             @ApiResponse(responseCode = "500", description = "로그인 처리 중 서버 오류 발생")
@@ -55,7 +56,7 @@ public class KakaoAuthController {
     }
 
     // ✅ GET: 테스트용 엔드포인트
-    @Operation(summary = "API 테스트용 엔드포인트", description = "서버 연결 확인을 위한 간단한 테스트 API입니다.")
+    @Operation(summary = "API 테스트용 엔드포인트", description = "서버 연결 확인을 위한 간단한 테스트 API")
     @ApiResponse(responseCode = "200", description = "정상 응답 OK 반환")
     @GetMapping("/test")
     public String test() {
