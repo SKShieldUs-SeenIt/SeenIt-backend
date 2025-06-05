@@ -2,9 +2,11 @@
 package com.basic.miniPjt5.mapper;
 
 import com.basic.miniPjt5.DTO.MovieDTO;
+import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,12 +24,14 @@ public class MovieMapper {
                 .posterPath(movie.getPosterPath())
                 .voteAverage(movie.getVoteAverage())
                 .voteCount(movie.getVoteCount())
-                .genres(movie.getGenres().stream()
-                        .map(genre -> MovieDTO.GenreInfo.builder()
-                                .id(genre.getId())
-                                .name(genre.getName())
-                                .build())
-                        .collect(Collectors.toList()))
+                .genres(movie.getGenres() != null ?
+                        movie.getGenres().stream()
+                                .map(genre -> MovieDTO.GenreInfo.builder()
+                                        .id(genre.getId())
+                                        .name(genre.getName())
+                                        .build())
+                                .collect(Collectors.toList()) :
+                        Collections.emptyList())
                 .reviewCount(movie.getReviews() != null ? movie.getReviews().size() : 0)
                 .userAverageRating(calculateUserAverageRating(movie))
                 .build();
@@ -43,9 +47,11 @@ public class MovieMapper {
                 .voteAverage(movie.getVoteAverage())
                 .voteCount(movie.getVoteCount())
                 .releaseDate(movie.getReleaseDate())
-                .genreNames(movie.getGenres().stream()
-                        .map(genre -> genre.getName())
-                        .collect(Collectors.toList()))
+                .genreNames(movie.getGenres() != null ?
+                        movie.getGenres().stream()
+                                .map(Genre::getName)
+                                .collect(Collectors.toList()) :
+                        Collections.emptyList())
                 .reviewCount(movie.getReviews() != null ? movie.getReviews().size() : 0)
                 .userAverageRating(calculateUserAverageRating(movie))
                 .build();
