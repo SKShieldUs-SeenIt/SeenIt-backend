@@ -1,11 +1,10 @@
 package com.basic.miniPjt5.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +20,9 @@ public class RatingDTO {
 
         @Schema(description = "별점 (1-10점)", example = "8", minimum = "1", maximum = "10", required = true)
         @NotNull(message = "별점은 필수입니다.")
-        @Min(value = 1, message = "별점은 1점 이상이어야 합니다.")
-        @Max(value = 10, message = "별점은 10점 이하여야 합니다.")
-        private Integer score;
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal score;
 
         @Schema(description = "영화 ID (영화 평점시 필수)", example = "1")
         private Long movieId;
