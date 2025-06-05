@@ -90,7 +90,7 @@ public class PostController {
         @ApiResponse(responseCode = "500", description = "서버 내부 오류 (예: 이미지 저장 실패)",
                 content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 })
-@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> createPost(@io.swagger.v3.oas.annotations.parameters.RequestBody(
                                                                 description = "게시글 생성 요청 데이터",
                                                                 required = true,
@@ -118,7 +118,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류 (예: 이미지 저장 실패)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PutMapping(value = "/update/{code}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{code}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> updatePost(@Parameter(name = "code", description = "게시글의 고유 코드", in = ParameterIn.PATH, required = true,
                                                                    schema = @Schema(type = "string", example = "P25052800001"))
                                                            @PathVariable String code,
