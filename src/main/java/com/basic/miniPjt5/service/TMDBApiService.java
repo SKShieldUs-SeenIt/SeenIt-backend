@@ -33,8 +33,9 @@ public class TMDBApiService {
     }
     
     public TMDBMovieResponse getPopularMovies(int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/movie/popular?api_key=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, page);
+                                 baseUrl, apiKey, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBMovieResponse.class);
@@ -45,8 +46,9 @@ public class TMDBApiService {
     }
     
     public TMDBMovieResponse getTopRatedMovies(int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/movie/top_rated?api_key=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, page);
+                                 baseUrl, apiKey, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBMovieResponse.class);
@@ -57,8 +59,9 @@ public class TMDBApiService {
     }
     
     public TMDBTVResponse getPopularTVShows(int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/tv/popular?api_key=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, page);
+                                 baseUrl, apiKey, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBTVResponse.class);
@@ -69,8 +72,9 @@ public class TMDBApiService {
     }
     
     public TMDBTVResponse getTopRatedTVShows(int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/tv/top_rated?api_key=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, page);
+                                 baseUrl, apiKey, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBTVResponse.class);
@@ -105,8 +109,9 @@ public class TMDBApiService {
     }
     
     public TMDBMovieResponse searchMovies(String query, int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/search/movie?api_key=%s&query=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, query, page);
+                                 baseUrl, apiKey, query, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBMovieResponse.class);
@@ -117,8 +122,9 @@ public class TMDBApiService {
     }
     
     public TMDBTVResponse searchTVShows(String query, int page) {
+        int tmdbPage = page + 1;
         String url = String.format("%s/search/tv?api_key=%s&query=%s&page=%d&language=ko-KR", 
-                                 baseUrl, apiKey, query, page);
+                                 baseUrl, apiKey, query, tmdbPage);
         
         try {
             return restTemplate.getForObject(url, TMDBTVResponse.class);

@@ -34,6 +34,7 @@ public class Drama implements Content {
         inverseJoinColumns = @JoinColumn(name = "genre_id") // Genre 엔티티의 PK
     )
     @JsonIgnore
+    @Builder.Default
     private List<Genre> genres = new ArrayList<>();
 
     @Column(nullable = false)

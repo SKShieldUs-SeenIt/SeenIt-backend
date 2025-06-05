@@ -22,10 +22,7 @@ public class Review extends BaseEntity {
     @Column(name = "review_id")
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String title;  // 리뷰 제목
-
-    @Column(nullable = false, length = 2000)
+    @Column(nullable = true, length = 2000)
     private String content;  // 리뷰 내용
 
     @Column(name = "likes_count")
@@ -90,7 +87,6 @@ public class Review extends BaseEntity {
         return Review.builder()
                 .user(user)
                 .movie(movie)
-                .title(title)
                 .content(content)
                 .isSpoiler(isSpoiler != null ? isSpoiler : false)
                 .likesCount(0)
@@ -101,7 +97,6 @@ public class Review extends BaseEntity {
         return Review.builder()
                 .user(user)
                 .drama(drama)
-                .title(title)
                 .content(content)
                 .isSpoiler(isSpoiler != null ? isSpoiler : false)
                 .likesCount(0)

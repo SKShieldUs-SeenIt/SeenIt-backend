@@ -1,12 +1,9 @@
 package com.basic.miniPjt5.DTO;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 public class ReviewDTO {
 
@@ -73,9 +70,6 @@ public class ReviewDTO {
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
 
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
-
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고 연출이 훌륭했습니다...")
         private String content;
 
@@ -113,12 +107,10 @@ public class ReviewDTO {
         private String contentType;
 
         @Schema(description = "생성일시", example = "2024-06-04T15:30:00")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime createdAt;
+        private String createdAt;
 
         @Schema(description = "수정일시", example = "2024-06-04T16:00:00")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime updatedAt;
+        private String updatedAt;
     }
 
     @Schema(description = "리뷰 목록용 간단한 응답 DTO")
@@ -131,9 +123,6 @@ public class ReviewDTO {
 
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
-
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
 
         @Schema(description = "리뷰 내용 (요약)", example = "스토리가 탄탄하고...")
         private String content;
@@ -170,9 +159,6 @@ public class ReviewDTO {
 
         @Schema(description = "리뷰 ID", example = "1")
         private Long id;
-
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!")
-        private String title;
 
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고...")
         private String content;
