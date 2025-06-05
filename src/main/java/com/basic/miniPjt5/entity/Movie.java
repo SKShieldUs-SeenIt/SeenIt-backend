@@ -34,6 +34,7 @@ public class Movie implements Content {
         inverseJoinColumns = @JoinColumn(name = "genre_id") // Genre 엔티티의 PK (genre_id)
     )
     @JsonIgnore
+    @Builder.Default
     private List<Genre> genres = new ArrayList<>(); // 영화가 속한 장르 리스트
 
     @Column(nullable = false)

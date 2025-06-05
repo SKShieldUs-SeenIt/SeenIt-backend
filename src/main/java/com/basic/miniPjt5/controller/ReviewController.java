@@ -2,6 +2,7 @@ package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.ReviewDTO;
 import com.basic.miniPjt5.security.JwtAuthenticationHelper;
+import com.basic.miniPjt5.security.UserPrincipal;
 import com.basic.miniPjt5.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,10 +37,10 @@ public class ReviewController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     public ResponseEntity<ReviewDTO.Response> createReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody ReviewDTO.CreateRequest requestDto) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = userPrincipal.getId();  // 직접 접근
         ReviewDTO.Response response = reviewService.createReview(userId, requestDto);
 
         return ResponseEntity.ok(response);
@@ -50,12 +50,12 @@ public class ReviewController {
     @Operation(summary = "리뷰 수정", description = "기존 리뷰 수정")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ReviewDTO.Response> updateReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "리뷰 ID", example = "1")
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewDTO.UpdateRequest requestDto) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = jwtAuthenticationHelper.extractUserId(userPrincipal);
         ReviewDTO.Response response = reviewService.updateReview(userId, reviewId, requestDto);
 
         return ResponseEntity.ok(response);
@@ -65,11 +65,11 @@ public class ReviewController {
     @Operation(summary = "리뷰 삭제", description = "리뷰 삭제")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "리뷰 ID", example = "1")
             @PathVariable Long reviewId) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = jwtAuthenticationHelper.extractUserId(userPrincipal);
         reviewService.deleteReview(userId, reviewId);
 
         return ResponseEntity.noContent().build();

@@ -2,8 +2,10 @@ package com.basic.miniPjt5.mapper;
 
 import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
+import com.basic.miniPjt5.entity.Genre;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,12 +26,13 @@ public class DramaMapper {
                 .voteCount(drama.getVoteCount())
                 .numberOfSeasons(drama.getNumberOfSeasons())
                 .numberOfEpisodes(drama.getNumberOfEpisodes())
-                .genres(drama.getGenres().stream()
-                        .map(genre -> DramaDTO.GenreInfo.builder()
+                .genres(drama.getGenres() != null ?drama.getGenres().stream()
+                            .map(genre -> DramaDTO.GenreInfo.builder()
                                 .id(genre.getId())
                                 .name(genre.getName())
                                 .build())
-                        .collect(Collectors.toList()))
+                            .collect(Collectors.toList()) :
+                            Collections.emptyList())
                 .reviewCount(drama.getReviews() != null ? drama.getReviews().size() : 0)
                 .userAverageRating(calculateUserAverageRating(drama))
                 .build();
@@ -47,9 +50,11 @@ public class DramaMapper {
                 .firstAirDate(drama.getFirstAirDate())
                 .numberOfSeasons(drama.getNumberOfSeasons())
                 .numberOfEpisodes(drama.getNumberOfEpisodes())
-                .genreNames(drama.getGenres().stream()
-                        .map(genre -> genre.getName())
-                        .collect(Collectors.toList()))
+                .genreNames(drama.getGenres() != null ?
+                        drama.getGenres().stream()
+                                .map(Genre::getName)
+                                .collect(Collectors.toList()) :
+                        Collections.emptyList())
                 .reviewCount(drama.getReviews() != null ? drama.getReviews().size() : 0)
                 .userAverageRating(calculateUserAverageRating(drama))
                 .build();

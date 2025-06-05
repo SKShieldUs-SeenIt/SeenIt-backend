@@ -127,7 +127,7 @@ public class PostService {
             deleteImage(post.getImageUrl());
             newImageUrl = null;
         }
-        //기존 이미지 삭제 후 새로운 이미지 업로드일 경우
+        //새로운 이미지 업로드일 경우
         else if (request.getImage() != null && !request.getImage().isEmpty()) {
             deleteImage(post.getImageUrl());
             newImageUrl = saveImage(request.getImage());
