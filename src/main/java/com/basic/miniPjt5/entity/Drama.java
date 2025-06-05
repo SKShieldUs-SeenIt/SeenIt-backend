@@ -55,4 +55,39 @@ public class Drama implements Content {
     private String lastAirDate; // 마지막 방송일
     private Integer numberOfSeasons; // 시즌 수
     private Integer numberOfEpisodes; // 에피소드 수
+
+    @OneToMany(mappedBy = "drama", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
+
+    // 통합 평균 평점 (TMDB + 사용자)
+    @Column
+    private Double combinedRating;
+
+    // 통합 평점 계산 (Movie와 동일)
+    public Double calculateCombinedRating() {
+        double tmdbTotalScore = this.voteAverage * this.voteCount;
+        double userTotalScore = ratings.stream()
+                .mapToInt(Rating::getScore)
+                .sum();
+
+        int totalVotes = this.voteCount + ratings.size();
+        if (totalVotes == 0) return 0.0;
+
+        double combinedAverage = (tmdbTotalScore + userTotalScore) / totalVotes;
+        return Math.round(combinedAverage * 100.0) / 100.0;
+    }
+
+    public Double getUserAverageRating() {
+        if (ratings.isEmpty()) return null;
+        return ratings.stream()
+                .mapToInt(Rating::getScore)
+                .average()
+                .orElse(0.0);
+    }
+
+    public void updateCombinedRating() {
+        this.combinedRating = calculateCombinedRating();
+    }
 }

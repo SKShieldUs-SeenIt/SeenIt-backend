@@ -149,8 +149,9 @@ public class MovieService {
 
     // 평점 높은 영화 조회
     public List<MovieDTO.ListResponse> getTopRatedMovies() {
-        List<Movie> movies = movieRepository.findTop20ByOrderByVoteAverageDesc();
-        return movies.stream()
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("combinedRating").descending());
+        Page<Movie> moviePage = movieRepository.findAll(pageable);
+        return moviePage.getContent().stream()
                 .map(movieMapper::toListResponse)
                 .toList();
     }
@@ -186,10 +187,11 @@ public class MovieService {
     }
 
     private Page<Movie> performLocalSearch(MovieDTO.SearchRequest searchRequest, int page, int size) {
+        String validatedSortBy = validateAndConvertSortBy(searchRequest.getSortBy());
         // 정렬 설정
         Sort sort = Sort.by(
                 Sort.Direction.fromString(searchRequest.getSortDirection()),
-                searchRequest.getSortBy()
+                validatedSortBy
         );
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -201,9 +203,32 @@ public class MovieService {
         } else if (searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
             Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
-            return movieRepository.findByVoteAverageBetween(minRating, maxRating, pageable);
+            return movieRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
         } else {
             return movieRepository.findAll(pageable);
+        }
+    }
+
+    private String validateAndConvertSortBy(String sortBy) {
+        if (sortBy == null) {
+            return "combinedRating"; // 통합 평점을 기본값으로
+        }
+
+        switch (sortBy.toLowerCase()) {
+            case "rating":
+                return "combinedRating";      // 통합 평점
+            case "tmdbrating":
+                return "voteAverage";         // TMDB 평점
+            case "title":
+                return "title";
+            case "releasedate":
+                return "releaseDate";
+            case "votecount":
+                return "voteCount";
+            case "voteaverage":
+                return "voteAverage";
+            default:
+                return "combinedRating";      // 기본값
         }
     }
 }

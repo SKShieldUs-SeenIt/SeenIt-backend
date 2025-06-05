@@ -28,7 +28,9 @@ public class DramaService {
 
     // 드라마 목록 조회
     public Page<DramaDTO.ListResponse> getDramas(int page, int size, String sortBy, String sortDirection) {
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        String validatedSortBy = validateAndConvertSortBy(sortBy);
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), validatedSortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Drama> dramaPage = dramaRepository.findAll(pageable);
@@ -80,8 +82,9 @@ public class DramaService {
 
     // 평점 높은 드라마 조회
     public List<DramaDTO.ListResponse> getTopRatedDramas() {
-        List<Drama> dramas = dramaRepository.findTop20ByOrderByVoteAverageDesc();
-        return dramas.stream()
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("combinedRating").descending());
+        Page<Drama> dramaPage = dramaRepository.findAll(pageable);
+        return dramaPage.getContent().stream()
                 .map(dramaMapper::toListResponse)
                 .toList();
     }
@@ -95,9 +98,10 @@ public class DramaService {
     }
 
     private Page<Drama> performLocalSearch(DramaDTO.SearchRequest searchRequest, int page, int size) {
+        String validatedSortBy = validateAndConvertSortBy(searchRequest.getSortBy());
         Sort sort = Sort.by(
                 Sort.Direction.fromString(searchRequest.getSortDirection()),
-                searchRequest.getSortBy()
+                validatedSortBy
         );
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -108,9 +112,35 @@ public class DramaService {
         } else if (searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
             Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
-            return dramaRepository.findByVoteAverageBetween(minRating, maxRating, pageable);
+            return dramaRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
         } else {
             return dramaRepository.findAll(pageable);
+        }
+    }
+    private String validateAndConvertSortBy(String sortBy) {
+        if (sortBy == null) {
+            return "combinedRating"; // 통합 평점을 기본값으로
+        }
+
+        switch (sortBy.toLowerCase()) {
+            case "rating":
+                return "combinedRating";      // 통합 평점
+            case "tmdbrating":
+                return "voteAverage";         // TMDB 평점
+            case "title":
+                return "title";
+            case "firstairdate":
+                return "firstAirDate";
+            case "numberofseasons":
+                return "numberOfSeasons";
+            case "numberofepisodes":
+                return "numberOfEpisodes";
+            case "votecount":
+                return "voteCount";
+            case "voteaverage":
+                return "voteAverage";
+            default:
+                return "combinedRating";      // 기본값
         }
     }
 }
