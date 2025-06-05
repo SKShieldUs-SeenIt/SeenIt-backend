@@ -72,7 +72,7 @@ public class ContentDTO {
         private Double minRating;
 
         @Schema(description = "정렬 기준", example = "popularity", allowableValues = {"popularity", "rating", "release_date", "title"})
-        @Pattern(regexp = "popularity|rating|release_date|title",
+        @Pattern(regexp = "voteAverage|rating|release_date|title",
                 message = "정렬 기준은 popularity, rating, release_date, title 중 하나여야 합니다.")
         private String sortBy = "popularity";
 

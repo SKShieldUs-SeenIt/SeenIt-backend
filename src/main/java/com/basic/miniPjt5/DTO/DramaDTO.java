@@ -1,9 +1,11 @@
 package com.basic.miniPjt5.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class DramaDTO {
@@ -159,10 +161,12 @@ public class DramaDTO {
         private Double userAverageRating;
 
         @Schema(description = "생성일시", example = "2024-06-04T15:30:00")
-        private String createdAt;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime createdAt;
 
         @Schema(description = "수정일시", example = "2024-06-04T16:00:00")
-        private String updatedAt;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime updatedAt;
     }
 
     @Schema(description = "드라마 목록 응답 DTO")
