@@ -117,7 +117,7 @@ public class TMDBDataInitializationService {
 
         // 인기 영화 가져오기 (처음 5페이지)
         for (int page = 1; page <= 5; page++) {
-            TMDBMovieResponse response = tmdbApiService.getPopularMovies(page);
+            TMDBMovieResponse response = tmdbApiService.getPopularMovies(page-1);
             if (response != null && response.getResults() != null) {
                 for (TMDBMovie tmdbMovie : response.getResults()) {
                     saveMovieIfNotExists(tmdbMovie);
@@ -135,7 +135,7 @@ public class TMDBDataInitializationService {
 
         // 평점 높은 영화 가져오기 (처음 3페이지)
         for (int page = 1; page <= 3; page++) {
-            TMDBMovieResponse response = tmdbApiService.getTopRatedMovies(page);
+            TMDBMovieResponse response = tmdbApiService.getTopRatedMovies(page-1);
             if (response != null && response.getResults() != null) {
                 for (TMDBMovie tmdbMovie : response.getResults()) {
                     saveMovieIfNotExists(tmdbMovie);
@@ -184,7 +184,7 @@ public class TMDBDataInitializationService {
 
         // 인기 드라마 가져오기 (처음 5페이지)
         for (int page = 1; page <= 5; page++) {
-            TMDBTVResponse response = tmdbApiService.getPopularTVShows(page);
+            TMDBTVResponse response = tmdbApiService.getPopularTVShows(page-1);
             if (response != null && response.getResults() != null) {
                 for (TMDBDrama tmdbDrama : response.getResults()) {
                     saveDramaIfNotExists(tmdbDrama);
@@ -201,7 +201,7 @@ public class TMDBDataInitializationService {
 
         // 평점 높은 드라마 가져오기 (처음 3페이지)
         for (int page = 1; page <= 3; page++) {
-            TMDBTVResponse response = tmdbApiService.getTopRatedTVShows(page);
+            TMDBTVResponse response = tmdbApiService.getTopRatedTVShows(page-1);
             if (response != null && response.getResults() != null) {
                 for (TMDBDrama tmdbDrama : response.getResults()) {
                     saveDramaIfNotExists(tmdbDrama);
