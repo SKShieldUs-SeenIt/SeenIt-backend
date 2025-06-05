@@ -161,4 +161,10 @@ public class ReviewController {
 
         return ResponseEntity.ok(reviews);
     }
+
+    @GetMapping("/movies/{movieId}/count")
+    public ResponseEntity<Long> getMovieReviewCount(Long movieId) {
+        Long count = reviewService.countMovieReviews(movieId);
+        return ResponseEntity.ok(count);
+    }
 }

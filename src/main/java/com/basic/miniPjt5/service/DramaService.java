@@ -105,18 +105,125 @@ public class DramaService {
         );
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty()) {
+        // 🎯 핵심 조건들만 사용한 복합 검색
+        boolean hasTitle = searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty();
+        boolean hasGenres = searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty();
+        boolean hasRating = searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null;
+        boolean hasSeasons = searchRequest.getMinSeasons() != null || searchRequest.getMaxSeasons() != null;
+
+        // 1. 🏆 최고급 검색: 제목 + 장르 + 평점
+        if (hasTitle && hasGenres && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return dramaRepository.findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 2. 제목 + 장르 + 시즌수
+        else if (hasTitle && hasGenres && hasSeasons) {
+            Integer minSeasons = searchRequest.getMinSeasons() != null ? searchRequest.getMinSeasons() : 1;
+            Integer maxSeasons = searchRequest.getMaxSeasons() != null ? searchRequest.getMaxSeasons() : 50;
+
+            return dramaRepository.findByTitleAndGenresAndSeasons(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    minSeasons,
+                    maxSeasons,
+                    pageable
+            );
+        }
+
+        // 3. 제목 + 장르
+        else if (hasTitle && hasGenres) {
+            return dramaRepository.findByTitleContainingIgnoreCaseAndGenres_IdIn(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    pageable
+            );
+        }
+
+        // 4. 제목 + 평점
+        else if (hasTitle && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return dramaRepository.findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 5. 제목 + 시즌수
+        else if (hasTitle && hasSeasons) {
+            Integer minSeasons = searchRequest.getMinSeasons() != null ? searchRequest.getMinSeasons() : 1;
+            Integer maxSeasons = searchRequest.getMaxSeasons() != null ? searchRequest.getMaxSeasons() : 50;
+
+            return dramaRepository.findByTitleContainingIgnoreCaseAndNumberOfSeasonsBetween(
+                    searchRequest.getTitle(),
+                    minSeasons,
+                    maxSeasons,
+                    pageable
+            );
+        }
+
+        // 6. 장르 + 평점
+        else if (hasGenres && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return dramaRepository.findByGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 7. 장르 + 시즌수
+        else if (hasGenres && hasSeasons) {
+            Integer minSeasons = searchRequest.getMinSeasons() != null ? searchRequest.getMinSeasons() : 1;
+            Integer maxSeasons = searchRequest.getMaxSeasons() != null ? searchRequest.getMaxSeasons() : 50;
+
+            return dramaRepository.findByGenres_IdInAndNumberOfSeasonsBetween(
+                    searchRequest.getGenreIds(),
+                    minSeasons,
+                    maxSeasons,
+                    pageable
+            );
+        }
+
+        // 8. 단일 조건들
+        else if (hasTitle) {
             return dramaRepository.findByTitleContainingIgnoreCase(searchRequest.getTitle(), pageable);
-        } else if (searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty()) {
+        }
+        else if (hasGenres) {
             return dramaRepository.findByGenres_IdIn(searchRequest.getGenreIds(), pageable);
-        } else if (searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null) {
+        }
+        else if (hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
             Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
             return dramaRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
-        } else {
+        }
+        else if (hasSeasons) {
+            Integer minSeasons = searchRequest.getMinSeasons() != null ? searchRequest.getMinSeasons() : 1;
+            Integer maxSeasons = searchRequest.getMaxSeasons() != null ? searchRequest.getMaxSeasons() : 50;
+            return dramaRepository.findByNumberOfSeasonsBetween(minSeasons, maxSeasons, pageable);
+        }
+
+        // 9. 조건 없으면 통합 평점 순으로 전체 조회
+        else {
             return dramaRepository.findAll(pageable);
         }
     }
+
     private String validateAndConvertSortBy(String sortBy) {
         if (sortBy == null) {
             return "combinedRating"; // 통합 평점을 기본값으로

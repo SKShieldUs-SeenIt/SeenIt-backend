@@ -272,4 +272,8 @@ public class ReviewService {
         if (text == null || keyword == null) return text;
         return text.replaceAll("(?i)" + keyword, "<mark>$0</mark>");
     }
+
+    public Long countMovieReviews(Long movieId) {
+        return reviewRepository.countByMovieId(movieId);
+    }
 }

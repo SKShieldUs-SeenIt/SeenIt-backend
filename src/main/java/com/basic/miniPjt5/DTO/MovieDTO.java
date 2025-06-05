@@ -111,11 +111,14 @@ public class MovieDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 평점", example = "8.5")
+        @Schema(description = "TMDB 평균 평점", example = "8.5")
         private Double voteAverage;
 
         @Schema(description = "투표 수", example = "1234")
         private Integer voteCount;
+
+        @Schema(description = "통합 평점 (TMDB + 사용자)", example = "8.7")
+        private Double combinedRating;
 
         @Schema(description = "장르 목록")
         private List<GenreInfo> genres;
@@ -158,11 +161,15 @@ public class MovieDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 평점", example = "8.5")
+        @Schema(description = "TMDB 평균 평점", example = "8.5")
         private Double voteAverage;
 
         @Schema(description = "투표 수", example = "1234")
         private Integer voteCount;
+
+
+        @Schema(description = "통합 평점 (TMDB + 사용자)", example = "8.7")
+        private Double combinedRating;
 
         @Schema(description = "개봉일", example = "2022-12-14")
         private String releaseDate;

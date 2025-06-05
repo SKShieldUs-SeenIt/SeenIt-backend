@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,10 +30,16 @@ public interface UserWatchedRepository extends JpaRepository<UserWatched, Long> 
     // 사용자가 시청한 모든 콘텐츠 목록 (최근 순)
     Page<UserWatched> findByUserIdOrderByWatchedAtDesc(Long userId, Pageable pageable);
 
+    // 최근 시청한 콘텐츠 1개
+    Optional<UserWatched> findFirstByUserIdOrderByWatchedAtDesc(Long userId);
+
+    // 특정 기간 이후 시청한 콘텐츠 수
+    long countByUserIdAndWatchedAtAfter(Long userId, LocalDateTime watchedAtAfter);
+
     // 사용자가 시청한 특정 타입 콘텐츠 ID 목록
     @Query("SELECT uw.contentId FROM UserWatched uw WHERE uw.userId = :userId AND uw.contentType = :contentType")
     List<Long> findContentIdsByUserIdAndContentType(
-            @Param("userId") Long userId, 
+            @Param("userId") Long userId,
             @Param("contentType") UserWatched.ContentType contentType);
 
     // 시청 기록 삭제
@@ -41,6 +48,6 @@ public interface UserWatchedRepository extends JpaRepository<UserWatched, Long> 
 
     // 사용자별 시청 통계
     long countByUserIdAndContentType(Long userId, UserWatched.ContentType contentType);
-    
+
     long countByUserId(Long userId);
 }
