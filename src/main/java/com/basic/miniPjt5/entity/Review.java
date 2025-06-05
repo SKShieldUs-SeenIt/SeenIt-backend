@@ -13,7 +13,6 @@ import lombok.*;
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_movie_id", columnList = "movie_id"),
         @Index(name = "idx_drama_id", columnList = "drama_id"),
-        @Index(name = "idx_title", columnList = "title")
 })
 public class Review extends BaseEntity {
 
@@ -22,10 +21,7 @@ public class Review extends BaseEntity {
     @Column(name = "review_id")
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String title;  // 리뷰 제목
-
-    @Column(nullable = false, length = 2000)
+    @Column(nullable = true, length = 2000)
     private String content;  // 리뷰 내용
 
     @Column(name = "likes_count")
@@ -86,22 +82,20 @@ public class Review extends BaseEntity {
     }
 
     // 생성자 헬퍼 메서드
-    public static Review createMovieReview(User user, Movie movie, String title, String content, Boolean isSpoiler) {
+    public static Review createMovieReview(User user, Movie movie, String content, Boolean isSpoiler) {
         return Review.builder()
                 .user(user)
                 .movie(movie)
-                .title(title)
                 .content(content)
                 .isSpoiler(isSpoiler != null ? isSpoiler : false)
                 .likesCount(0)
                 .build();
     }
 
-    public static Review createDramaReview(User user, Drama drama, String title, String content, Boolean isSpoiler) {
+    public static Review createDramaReview(User user, Drama drama, String content, Boolean isSpoiler) {
         return Review.builder()
                 .user(user)
                 .drama(drama)
-                .title(title)
                 .content(content)
                 .isSpoiler(isSpoiler != null ? isSpoiler : false)
                 .likesCount(0)

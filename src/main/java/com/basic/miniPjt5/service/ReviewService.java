@@ -52,7 +52,6 @@ public class ReviewService {
             review = Review.createMovieReview(
                     user,
                     movie,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
@@ -63,7 +62,6 @@ public class ReviewService {
             review = Review.createDramaReview(
                     user,
                     drama,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
@@ -85,7 +83,6 @@ public class ReviewService {
         }
 
         // 리뷰 수정
-        review.setTitle(requestDto.getTitle());
         review.setContent(requestDto.getContent());
         review.setIsSpoiler(requestDto.getIsSpoiler());
 
@@ -196,7 +193,6 @@ public class ReviewService {
     private ReviewDTO.Response convertToResponseDto(Review review) {
         ReviewDTO.Response dto = new ReviewDTO.Response();
         dto.setId(review.getId());
-        dto.setTitle(review.getTitle());
         dto.setContent(review.getContent());
         dto.setUsername(review.getUser().getName());
         dto.setUserId(review.getUser().getUserId());
@@ -226,7 +222,6 @@ public class ReviewService {
     private ReviewDTO.ListResponse convertToListResponseDto(Review review) {
         ReviewDTO.ListResponse dto = new ReviewDTO.ListResponse();
         dto.setId(review.getId());
-        dto.setTitle(review.getTitle());
         dto.setContent(review.getContent().length() > 100 ?
                 review.getContent().substring(0, 100) + "..." :
                 review.getContent());
@@ -250,7 +245,6 @@ public class ReviewService {
     private ReviewDTO.SearchResponse convertToSearchResponseDto(Review review, String keyword) {
         ReviewDTO.SearchResponse dto = new ReviewDTO.SearchResponse();
         dto.setId(review.getId());
-        dto.setTitle(review.getTitle());
         dto.setContent(review.getContent());
         dto.setUsername(review.getUser().getName());
         dto.setLikesCount(review.getLikesCount());
@@ -258,7 +252,6 @@ public class ReviewService {
         dto.setCreatedAt(review.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
         // 검색어 하이라이트 처리 (간단한 예시)
-        dto.setHighlightedTitle(highlightKeyword(review.getTitle(), keyword));
         dto.setHighlightedContent(highlightKeyword(review.getContent(), keyword));
 
         if (review.getMovie() != null) {
