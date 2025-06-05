@@ -188,23 +188,81 @@ public class MovieService {
 
     private Page<Movie> performLocalSearch(MovieDTO.SearchRequest searchRequest, int page, int size) {
         String validatedSortBy = validateAndConvertSortBy(searchRequest.getSortBy());
-        // 정렬 설정
         Sort sort = Sort.by(
                 Sort.Direction.fromString(searchRequest.getSortDirection()),
                 validatedSortBy
         );
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // 검색 조건에 따른 쿼리 실행
-        if (searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty()) {
+        // 🎯 3가지 핵심 조건만 사용한 복합 검색
+        boolean hasTitle = searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty();
+        boolean hasGenres = searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty();
+        boolean hasRating = searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null;
+
+        // 1. 🏆 최고급 검색: 제목 + 장르 + 평점
+        if (hasTitle && hasGenres && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return movieRepository.findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 2. 제목 + 장르
+        else if (hasTitle && hasGenres) {
+            return movieRepository.findByTitleContainingIgnoreCaseAndGenres_IdIn(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    pageable
+            );
+        }
+
+        // 3. 제목 + 평점
+        else if (hasTitle && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return movieRepository.findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 4. 장르 + 평점
+        else if (hasGenres && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+
+            return movieRepository.findByGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 5. 단일 조건들
+        else if (hasTitle) {
             return movieRepository.findByTitleContainingIgnoreCase(searchRequest.getTitle(), pageable);
-        } else if (searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty()) {
+        }
+        else if (hasGenres) {
             return movieRepository.findByGenres_IdIn(searchRequest.getGenreIds(), pageable);
-        } else if (searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null) {
+        }
+        else if (hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
             Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
             return movieRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
-        } else {
+        }
+
+        // 6. 조건 없으면 통합 평점 순으로 전체 조회
+        else {
             return movieRepository.findAll(pageable);
         }
     }

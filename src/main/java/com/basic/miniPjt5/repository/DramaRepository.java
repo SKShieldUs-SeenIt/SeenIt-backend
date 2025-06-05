@@ -62,4 +62,97 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     Page<Drama> findByCombinedRatingBetween(@Param("minRating") Double minRating,
                                             @Param("maxRating") Double maxRating,
                                             Pageable pageable);
+
+    @Query("SELECT DISTINCT d FROM Drama d WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+    Page<Drama> findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
+            @Param("title") String title,
+            @Param("minRating") Double minRating,
+            @Param("maxRating") Double maxRating,
+            Pageable pageable
+    );
+
+    // 장르 + 통합평점 범위 검색
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
+            "g.id IN :genreIds AND " +
+            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+    Page<Drama> findByGenres_IdInAndCombinedRatingBetween(
+            @Param("genreIds") List<Long> genreIds,
+            @Param("minRating") Double minRating,
+            @Param("maxRating") Double maxRating,
+            Pageable pageable
+    );
+
+    // 🏆 최고급 복합 검색: 제목 + 장르 + 통합평점
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "g.id IN :genreIds AND " +
+            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+    Page<Drama> findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
+            @Param("title") String title,
+            @Param("genreIds") List<Long> genreIds,
+            @Param("minRating") Double minRating,
+            @Param("maxRating") Double maxRating,
+            Pageable pageable
+    );
+
+    // 제목 + 시즌수 범위 검색
+    @Query("SELECT DISTINCT d FROM Drama d WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "d.numberOfSeasons BETWEEN :minSeasons AND :maxSeasons")
+    Page<Drama> findByTitleContainingIgnoreCaseAndNumberOfSeasonsBetween(
+            @Param("title") String title,
+            @Param("minSeasons") Integer minSeasons,
+            @Param("maxSeasons") Integer maxSeasons,
+            Pageable pageable
+    );
+
+    // 제목 + 방영년도 복합 검색
+    @Query("SELECT DISTINCT d FROM Drama d WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "d.firstAirDate LIKE CONCAT(:year, '%')")
+    Page<Drama> findByTitleContainingIgnoreCaseAndFirstAirYear(
+            @Param("title") String title,
+            @Param("year") String year,
+            Pageable pageable
+    );
+
+    // 장르 + 시즌수 범위 검색
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
+            "g.id IN :genreIds AND " +
+            "d.numberOfSeasons BETWEEN :minSeasons AND :maxSeasons")
+    Page<Drama> findByGenres_IdInAndNumberOfSeasonsBetween(
+            @Param("genreIds") List<Long> genreIds,
+            @Param("minSeasons") Integer minSeasons,
+            @Param("maxSeasons") Integer maxSeasons,
+            Pageable pageable
+    );
+
+    // 방영년도별 검색 (페이징 지원)
+    @Query("SELECT d FROM Drama d WHERE d.firstAirDate LIKE CONCAT(:year, '%')")
+    Page<Drama> findByFirstAirYear(@Param("year") String year, Pageable pageable);
+
+    // 제목 + 장르 복합 검색 (기존에 없다면 추가)
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "g.id IN :genreIds")
+    Page<Drama> findByTitleContainingIgnoreCaseAndGenres_IdIn(
+            @Param("title") String title,
+            @Param("genreIds") List<Long> genreIds,
+            Pageable pageable
+    );
+
+    // 드라마만의 추가 메서드
+    @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
+            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
+            "g.id IN :genreIds AND " +
+            "d.numberOfSeasons BETWEEN :minSeasons AND :maxSeasons")
+    Page<Drama> findByTitleAndGenresAndSeasons(
+            @Param("title") String title,
+            @Param("genreIds") List<Long> genreIds,
+            @Param("minSeasons") Integer minSeasons,
+            @Param("maxSeasons") Integer maxSeasons,
+            Pageable pageable
+    );
 }
