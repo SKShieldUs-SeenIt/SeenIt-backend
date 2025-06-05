@@ -147,8 +147,8 @@ public class MovieController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "popularity")
-            @RequestParam(defaultValue = "popularity") String sortBy,
+            @Parameter(description = "정렬 기준", example = "voteAverage")
+            @RequestParam(defaultValue = "voteAverage") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
