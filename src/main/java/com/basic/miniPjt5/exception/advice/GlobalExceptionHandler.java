@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//@RestControllerAdvice(basePackages = "com.basic.miniPjt5.controller")
+//@RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
