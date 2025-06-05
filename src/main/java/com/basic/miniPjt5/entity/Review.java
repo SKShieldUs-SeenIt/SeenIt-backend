@@ -13,7 +13,6 @@ import lombok.*;
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_movie_id", columnList = "movie_id"),
         @Index(name = "idx_drama_id", columnList = "drama_id"),
-        @Index(name = "idx_title", columnList = "title")
 })
 public class Review extends BaseEntity {
 
@@ -83,7 +82,7 @@ public class Review extends BaseEntity {
     }
 
     // 생성자 헬퍼 메서드
-    public static Review createMovieReview(User user, Movie movie, String title, String content, Boolean isSpoiler) {
+    public static Review createMovieReview(User user, Movie movie, String content, Boolean isSpoiler) {
         return Review.builder()
                 .user(user)
                 .movie(movie)
@@ -93,7 +92,7 @@ public class Review extends BaseEntity {
                 .build();
     }
 
-    public static Review createDramaReview(User user, Drama drama, String title, String content, Boolean isSpoiler) {
+    public static Review createDramaReview(User user, Drama drama, String content, Boolean isSpoiler) {
         return Review.builder()
                 .user(user)
                 .drama(drama)

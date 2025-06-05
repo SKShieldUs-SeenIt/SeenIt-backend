@@ -52,7 +52,6 @@ public class ReviewService {
             review = Review.createMovieReview(
                     user,
                     movie,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
@@ -63,7 +62,6 @@ public class ReviewService {
             review = Review.createDramaReview(
                     user,
                     drama,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
