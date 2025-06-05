@@ -1,7 +1,7 @@
 package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.RatingDTO;
-import com.basic.miniPjt5.security.CustomUserDetails;
+import com.basic.miniPjt5.security.UserPrincipal;
 import com.basic.miniPjt5.service.RatingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -38,10 +37,10 @@ public class RatingController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     public ResponseEntity<RatingDTO.Response> createOrUpdateRating(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody RatingDTO.Request requestDto) {
 
-        Long userId = getUserId(userDetails);
+        Long userId = userPrincipal.getId();
         RatingDTO.Response response = ratingService.createOrUpdateRating(userId, requestDto);
 
         return ResponseEntity.ok(response);
@@ -51,11 +50,11 @@ public class RatingController {
     @Operation(summary = "별점 삭제", description = "등록한 별점 삭제")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteRating(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "별점 ID", example = "1")
             @PathVariable Long ratingId) {
 
-        Long userId = getUserId(userDetails);
+        Long userId = userPrincipal.getId();
         ratingService.deleteRating(userId, ratingId);
 
         return ResponseEntity.noContent().build();
@@ -65,11 +64,11 @@ public class RatingController {
     @Operation(summary = "내 영화 별점 조회", description = "특정 영화에 대한 내 별점 조회")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<RatingDTO.Response> getMyMovieRating(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId) {
 
-        Long userId = getUserId(userDetails);
+        Long userId = userPrincipal.getId();
         RatingDTO.Response rating = ratingService.getUserRating(userId, movieId, null);
 
         if (rating == null) {
@@ -83,11 +82,11 @@ public class RatingController {
     @Operation(summary = "내 드라마 별점 조회", description = "특정 드라마에 대한 내 별점 조회")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<RatingDTO.Response> getMyDramaRating(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "드라마 ID", example = "1")
             @PathVariable Long dramaId) {
 
-        Long userId = getUserId(userDetails);
+        Long userId = userPrincipal.getId();
         RatingDTO.Response rating = ratingService.getUserRating(userId, null, dramaId);
 
         if (rating == null) {
@@ -135,13 +134,13 @@ public class RatingController {
     @Operation(summary = "내 별점 목록", description = "내가 등록한 모든 별점 목록 조회")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Page<RatingDTO.Response>> getMyRatings(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "페이지 번호", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(defaultValue = "10") int size) {
 
-        Long userId = getUserId(userDetails);
+        Long userId = userPrincipal.getId();
         Pageable pageable = PageRequest.of(page, size);
         Page<RatingDTO.Response> ratings = ratingService.getUserRatings(userId, pageable);
 
@@ -187,13 +186,5 @@ public class RatingController {
             @PathVariable Long movieId) {
         Map<Integer, Long> distribution = ratingService.getScoreDistribution(movieId, null);
         return ResponseEntity.ok(distribution);
-    }
-
-    // UserDetails에서 사용자 ID 추출하는 헬퍼 메서드
-    private Long getUserId(UserDetails userDetails) {
-        if (userDetails instanceof CustomUserDetails) {
-            return ((CustomUserDetails) userDetails).getUserId();
-        }
-        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
 }
