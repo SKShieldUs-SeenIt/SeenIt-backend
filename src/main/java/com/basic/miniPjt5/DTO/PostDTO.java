@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 
 public class PostDTO {
-    @Schema(description = "게시글 생성 DTO")
+    @Schema(description = "게시글 생성 DTO", name = "PostCreateRequest")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -53,7 +53,7 @@ public class PostDTO {
         }
     }
 
-    @Schema(description = "게시글 수정 DTO")
+    @Schema(description = "게시글 수정 DTO", name = "PostUpdateRequest")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -76,7 +76,7 @@ public class PostDTO {
 
     }
 
-    @Schema(description = "게시글 목록 Response DTO")
+    @Schema(description = "게시글 목록 Response DTO", name = "PostListResponse")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -119,7 +119,7 @@ public class PostDTO {
         }
     }
 
-    @Schema(description = "게시글 단건 Response DTO")
+    @Schema(description = "게시글 단건 Response DTO", name = "PostResponse")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

@@ -78,19 +78,19 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-//    input type hidden으로 contentType, contentId
-@Operation(summary = "게시글 생성", description = "게시글 생성(제목, 내용, 이미지, 콘텐츠 정보(타입, ID 값), 사용자 ID가 필요합니다.")
-@ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "게시글 생성 성공",
-                content = @Content(schema = @Schema(implementation = PostDTO.Response.class))),
-        @ApiResponse(responseCode = "400", description = "게시글 생성 실패 (잘못된 데이터, 필수 필드 누락 등)",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자 (유효한 JWT 토큰 필요)",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @ApiResponse(responseCode = "500", description = "서버 내부 오류 (예: 이미지 저장 실패)",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-})
-@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //    input type hidden으로 contentType, contentId
+    @Operation(summary = "게시글 생성", description = "게시글 생성(제목, 내용, 이미지, 콘텐츠 정보(타입, ID 값), 사용자 ID가 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "게시글 생성 성공",
+                    content = @Content(schema = @Schema(implementation = PostDTO.Response.class))),
+            @ApiResponse(responseCode = "400", description = "게시글 생성 실패 (잘못된 데이터, 필수 필드 누락 등)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자 (유효한 JWT 토큰 필요)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류 (예: 이미지 저장 실패)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO.Response> createPost(@io.swagger.v3.oas.annotations.parameters.RequestBody(
                                                                 description = "게시글 생성 요청 데이터",
                                                                 required = true,
@@ -171,8 +171,9 @@ public class PostController {
     public ResponseEntity<ContentSimpleDTO> getContentSummary( @Parameter(name = "contentType", description = "콘텐츠 타입(MOVIE, DRAMA)", in = ParameterIn.PATH, required = true,
                                                                 schema = @Schema(type = "string", allowableValues = {"MOVIE", "DRAMA"}, example = "MOVIE"))
                                                                 @PathVariable ContentType contentType,
-                                                               @Parameter(name = "contentId", description = "콘텐츠의 고유 ID", in = ParameterIn.PATH, required = true,
-                                                                       schema = @Schema(type = "integer", format = "int64"))
+
+                                                               @Parameter(name = "contentId", description = "콘텐츠 ID (MOVIE ID 또는 DRAMA ID)", in = ParameterIn.PATH, required = true,
+                                                                       schema = @Schema(type = "integer", example = "1"))
                                                                @PathVariable Long contentId) {
         ContentSimpleDTO dto = tmdbDataInitializationService.getContentSummary(contentType, contentId);
         return ResponseEntity.ok(dto);
