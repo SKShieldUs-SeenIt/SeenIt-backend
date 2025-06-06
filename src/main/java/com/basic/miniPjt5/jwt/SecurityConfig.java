@@ -31,7 +31,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/swagger-ui",
+                                "/swagger-resources", // swagger-resources 루트 경로
+                                "/swagger-resources/configuration/ui", // 특정 구성 리소스
+                                "/swagger-resources/configuration/security"
                         ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()

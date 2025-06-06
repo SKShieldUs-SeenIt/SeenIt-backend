@@ -77,21 +77,11 @@ public enum ErrorCode {
     AUTH_ACCESS_DENIED("AUTH_004", "접근 권한이 없습니다", HttpStatus.FORBIDDEN),
     AUTH_ACCOUNT_LOCKED("AUTH_005", "계정이 잠겨있습니다", HttpStatus.FORBIDDEN),
 
-    // 회원 관련 (40X)
-    MEMBER_EMAIL_DUPLICATE("MEMBER_002", "이미 사용 중인 이메일입니다", HttpStatus.CONFLICT),
-    MEMBER_SUSPENDED("MEMBER_003", "정지된 회원입니다", HttpStatus.FORBIDDEN),
-    MEMBER_WITHDRAWN("MEMBER_004", "탈퇴한 회원입니다", HttpStatus.GONE),
-
-    // 도서 관련 (40X)
-    BOOK_NOT_FOUND("BOOK_001", "도서를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
-    BOOK_ISBN_DUPLICATE("BOOK_002", "이미 등록된 ISBN입니다", HttpStatus.CONFLICT),
-    BOOK_NOT_AVAILABLE("BOOK_003", "대출할 수 없는 도서입니다", HttpStatus.BAD_REQUEST),
-    BOOK_OUT_OF_STOCK("BOOK_004", "재고가 없습니다", HttpStatus.BAD_REQUEST),
-
     //Post 관련(40X)
     POST_NOT_FOUND("POST_001", "게시글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     POST_CODE_DUPLICATE("POST_002","이미 사용 중인 게시글 코드입니다", HttpStatus.CONFLICT),
     POST_ACCESS_DENIED("POST_003", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
+
     //댓글 관련(40X)
     COMMENT_NOT_FOUND("COMMENT_001", "댓글을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     COMMENT_ACCESS_DENIED ("COMMENT_002", "작성자가 아닙니다", HttpStatus.FORBIDDEN),
