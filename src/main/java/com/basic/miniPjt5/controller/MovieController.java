@@ -40,8 +40,8 @@ public class MovieController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "voteAverage")
-            @RequestParam(defaultValue = "voteAverage") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
@@ -119,7 +119,7 @@ public class MovieController {
     }
 
     @PostMapping("/search")
-    @Operation(summary = "영화 상세 검색", description = "다양한 조건으로 영화 검색")
+    @Operation(summary = "영화 세부 검색", description = "다양한 조건으로 영화 검색")
     public ResponseEntity<PageResponseDTO<MovieDTO.ListResponse>> searchMovies(
             @Valid @RequestBody MovieDTO.SearchRequest searchRequest,
             @Parameter(description = "페이지 번호", example = "0")
@@ -153,8 +153,8 @@ public class MovieController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "voteAverage")
-            @RequestParam(defaultValue = "voteAverage") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 

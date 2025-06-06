@@ -5,6 +5,9 @@ import com.basic.miniPjt5.DTO.MovieDTO;
 import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
 import com.basic.miniPjt5.repository.MovieRepository;
+import com.basic.miniPjt5.repository.RatingRepository;
+import com.basic.miniPjt5.repository.ReviewRepository;
+import com.basic.miniPjt5.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +21,21 @@ public class MovieMapper {
     @Autowired
     private MovieRepository movieRepository;
 
-    // Entity -> Response DTO (상세)
+    @Autowired
+    private RatingRepository ratingRepository; // 🆕 추가
+
+    @Autowired
+    private ReviewRepository reviewRepository; // 🆕 추가
+
+    @Autowired
+    private RatingService ratingService; // 🆕 추가
+
+    // 🔥 수정된 Entity -> Response DTO (상세)
     public MovieDTO.Response toResponse(Movie movie) {
-        // combinedRating 업데이트 (매번 최신 값으로)
-        movie.updateCombinedRating();
-        movieRepository.save(movie);
+        // 🔥 Repository 기반으로 필요한 데이터 조회
+        Long movieId = movie.getId();
+        Double userAverageRating = ratingRepository.findAverageScoreByMovieId(movieId).orElse(null);
+        Long reviewCount = reviewRepository.countByMovieId(movieId);
 
         return MovieDTO.Response.builder()
                 .id(movie.getId())
@@ -33,7 +46,7 @@ public class MovieMapper {
                 .posterPath(movie.getPosterPath())
                 .voteAverage(movie.getVoteAverage())
                 .voteCount(movie.getVoteCount())
-                .combinedRating(movie.getCombinedRating()) // ✅ 추가된 매핑
+                .combinedRating(movie.getCombinedRating()) // 이미 계산된 값 사용
                 .genres(movie.getGenres() != null ?
                         movie.getGenres().stream()
                                 .map(genre -> MovieDTO.GenreInfo.builder()
@@ -42,16 +55,17 @@ public class MovieMapper {
                                         .build())
                                 .collect(Collectors.toList()) :
                         Collections.emptyList())
-                .reviewCount(movie.getReviews() != null ? movie.getReviews().size() : 0)
-                .userAverageRating(movie.getUserAverageRating()) // ✅ 수정된 부분
+                .reviewCount(reviewCount.intValue()) // 🔥 Repository 기반
+                .userAverageRating(userAverageRating) // 🔥 Repository 기반
                 .build();
     }
 
-    // Entity -> ListResponse DTO (목록용)
+    // 🔥 수정된 Entity -> ListResponse DTO (목록용)
     public MovieDTO.ListResponse toListResponse(Movie movie) {
-        // combinedRating 업데이트 (매번 최신 값으로)
-        movie.updateCombinedRating();
-        movieRepository.save(movie);
+        // 🔥 Repository 기반으로 필요한 데이터 조회
+        Long movieId = movie.getId();
+        Double userAverageRating = ratingRepository.findAverageScoreByMovieId(movieId).orElse(null);
+        Long reviewCount = reviewRepository.countByMovieId(movieId);
 
         return MovieDTO.ListResponse.builder()
                 .id(movie.getId())
@@ -60,19 +74,19 @@ public class MovieMapper {
                 .posterPath(movie.getPosterPath())
                 .voteAverage(movie.getVoteAverage())
                 .voteCount(movie.getVoteCount())
-                .combinedRating(movie.getCombinedRating()) // ✅ 추가된 매핑
+                .combinedRating(movie.getCombinedRating()) // 이미 계산된 값 사용
                 .releaseDate(movie.getReleaseDate())
                 .genreNames(movie.getGenres() != null ?
                         movie.getGenres().stream()
                                 .map(Genre::getName)
                                 .collect(Collectors.toList()) :
                         Collections.emptyList())
-                .reviewCount(movie.getReviews() != null ? movie.getReviews().size() : 0)
-                .userAverageRating(movie.getUserAverageRating()) // ✅ 수정된 부분
+                .reviewCount(reviewCount.intValue()) // 🔥 Repository 기반
+                .userAverageRating(userAverageRating) // 🔥 Repository 기반
                 .build();
     }
 
-    // CreateRequest -> Entity
+    // 🔥 수정된 CreateRequest -> Entity
     public Movie toEntity(MovieDTO.CreateRequest request) {
         Movie movie = Movie.builder()
                 .tmdbId(request.getTmdbId())
@@ -82,12 +96,10 @@ public class MovieMapper {
                 .posterPath(request.getPosterPath())
                 .voteAverage(request.getVoteAverage())
                 .voteCount(request.getVoteCount())
+                .combinedRating(0.0) // 🔥 초기값 설정 (나중에 Service에서 계산)
                 .build();
 
-        // 생성 시 combinedRating 초기화
-        movie.updateCombinedRating();
-        movieRepository.save(movie);
-
+        // 🔥 매퍼에서는 저장하지 않음 (Service에서 처리)
         return movie;
     }
 

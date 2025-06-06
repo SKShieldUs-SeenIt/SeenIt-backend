@@ -28,8 +28,9 @@ public class MovieService {
     private final GenreRepository genreRepository;
     private final MovieMapper movieMapper;
     private final ContentSearchService contentSearchService;
+    private final RatingService ratingService; // 🆕 추가
 
-    // 영화 목록 조회 (페이징, 정렬)
+    // 🔥 수정된 영화 목록 조회
     public Page<MovieDTO.ListResponse> getMovies(int page, int size, String sortBy, String sortDirection) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -38,23 +39,33 @@ public class MovieService {
         return moviePage.map(movieMapper::toListResponse);
     }
 
-    // 영화 상세 조회
+    // 🔥 수정된 영화 상세 조회
     public MovieDTO.Response getMovieById(Long id) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
+        // Repository 기반 평점 계산
+        Double newRating = ratingService.calculateMovieCombinedRating(id);
+        movie.setCombinedRating(newRating);
+        movieRepository.save(movie);
+
         return movieMapper.toResponse(movie);
     }
 
-    // TMDB ID로 영화 조회
+    // 🔥 수정된 TMDB ID로 영화 조회
     public MovieDTO.Response getMovieByTmdbId(Long tmdbId) {
         Movie movie = movieRepository.findByTmdbId(tmdbId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
+        // Repository 기반 평점 계산
+        Double newRating = ratingService.calculateMovieCombinedRating(movie.getId());
+        movie.setCombinedRating(newRating);
+        movieRepository.save(movie);
+
         return movieMapper.toResponse(movie);
     }
 
-    // 영화 생성 (관리자용)
+    // 🔥 수정된 영화 생성
     @Transactional
     public MovieDTO.Response createMovie(MovieDTO.CreateRequest request) {
         // 중복 확인
@@ -73,13 +84,17 @@ public class MovieService {
             movie.setGenres(genres);
         }
 
-        movie.updateCombinedRating();
-
         Movie savedMovie = movieRepository.save(movie);
+
+        // 🔥 Repository 기반 평점 계산
+        Double newRating = ratingService.calculateMovieCombinedRating(savedMovie.getId());
+        savedMovie.setCombinedRating(newRating);
+        movieRepository.save(savedMovie);
+
         return movieMapper.toResponse(savedMovie);
     }
 
-    // 영화 수정 (관리자용)
+    // 🔥 수정된 영화 수정
     @Transactional
     public MovieDTO.Response updateMovie(Long id, MovieDTO.UpdateRequest request) {
         Movie movie = movieRepository.findById(id)
@@ -96,22 +111,15 @@ public class MovieService {
             movie.setGenres(genres);
         }
 
-        movie.updateCombinedRating();
+        // 🔥 Repository 기반 평점 계산
+        Double newRating = ratingService.calculateMovieCombinedRating(id);
+        movie.setCombinedRating(newRating);
 
         Movie updatedMovie = movieRepository.save(movie);
         return movieMapper.toResponse(updatedMovie);
     }
 
-    // 영화 삭제 (관리자용)
-    @Transactional
-    public void deleteMovie(Long id) {
-        if (!movieRepository.existsById(id)) {
-            throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
-        }
-        movieRepository.deleteById(id);
-    }
-
-    // 영화 검색
+    // 🔥 수정된 영화 검색
     public Page<MovieDTO.ListResponse> searchMovies(MovieDTO.SearchRequest searchRequest, int page, int size) {
         // 로컬 DB 검색
         Page<Movie> localResults = performLocalSearch(searchRequest, page, size);
@@ -125,15 +133,61 @@ public class MovieService {
                 localResults = performLocalSearch(searchRequest, page, size);
             }
         }
-        if (!localResults.getContent().isEmpty()) {
-            List<Movie> updatedMovies = localResults.getContent().stream()
-                    .peek(Movie::updateCombinedRating)
-                    .collect(Collectors.toList());
 
-            movieRepository.saveAll(updatedMovies);
+        // 🔥 수정: 컬렉션 참조 대신 Repository 기반 계산
+        if (!localResults.getContent().isEmpty()) {
+            for (Movie movie : localResults.getContent()) {
+                Double newRating = ratingService.calculateMovieCombinedRating(movie.getId());
+                movie.setCombinedRating(newRating);
+            }
+            movieRepository.saveAll(localResults.getContent());
         }
 
         return localResults.map(movieMapper::toListResponse);
+    }
+
+    // 🔥 수정된 평점 수정 메서드 (완전 제거하거나 Repository 기반으로)
+    @Transactional
+    public void updateMovieCombinedRatings(List<Long> movieIds) {
+        for (Long movieId : movieIds) {
+            Movie movie = movieRepository.findById(movieId).orElse(null);
+            if (movie != null) {
+                Double newRating = ratingService.calculateMovieCombinedRating(movieId);
+                movie.setCombinedRating(newRating);
+                movieRepository.save(movie);
+            }
+        }
+    }
+
+    // 🔥 완전히 새로운 안전한 평점 수정 메서드
+    @Transactional
+    public void fixAllCombinedRatings() {
+        List<Movie> allMovies = movieRepository.findAll();
+
+        for (Movie movie : allMovies) {
+            try {
+                // 🔥 Repository 기반 계산 (컬렉션 참조 X)
+                Double newRating = ratingService.calculateMovieCombinedRating(movie.getId());
+                movie.setCombinedRating(newRating);
+
+                System.out.println("영화 ID " + movie.getId() + " (" + movie.getTitle() + ") - " +
+                        "combinedRating: " + movie.getCombinedRating());
+            } catch (Exception e) {
+                System.err.println("영화 ID " + movie.getId() + " 업데이트 실패: " + e.getMessage());
+            }
+        }
+
+        movieRepository.saveAll(allMovies);
+        System.out.println("모든 영화 combinedRating 업데이트 완료!");
+    }
+
+    // 영화 삭제 (관리자용)
+    @Transactional
+    public void deleteMovie(Long id) {
+        if (!movieRepository.existsById(id)) {
+            throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
+        }
+        movieRepository.deleteById(id);
     }
 
     // 장르별 영화 조회
@@ -303,24 +357,4 @@ public class MovieService {
         }
     }
 
-    @Transactional
-    public void fixAllCombinedRatings() {
-        List<Movie> allMovies = movieRepository.findAll();
-
-        for (Movie movie : allMovies) {
-            try {
-                // ratings 컬렉션을 명시적으로 로딩
-                movie.getRatings().size(); // Lazy Loading 강제 실행
-
-                movie.updateCombinedRating();
-                System.out.println("영화 ID " + movie.getId() + " (" + movie.getTitle() + ") - " +
-                        "combinedRating: " + movie.getCombinedRating());
-            } catch (Exception e) {
-                System.err.println("영화 ID " + movie.getId() + " 업데이트 실패: " + e.getMessage());
-            }
-        }
-
-        movieRepository.saveAll(allMovies);
-        System.out.println("모든 영화 combinedRating 업데이트 완료!");
-    }
 }
