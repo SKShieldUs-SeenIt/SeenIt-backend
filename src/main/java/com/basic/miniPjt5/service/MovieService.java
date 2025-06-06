@@ -73,6 +73,8 @@ public class MovieService {
             movie.setGenres(genres);
         }
 
+        movie.updateCombinedRating();
+
         Movie savedMovie = movieRepository.save(movie);
         return movieMapper.toResponse(savedMovie);
     }
@@ -93,6 +95,8 @@ public class MovieService {
             }
             movie.setGenres(genres);
         }
+
+        movie.updateCombinedRating();
 
         Movie updatedMovie = movieRepository.save(movie);
         return movieMapper.toResponse(updatedMovie);
@@ -120,6 +124,13 @@ public class MovieService {
                 // 다시 로컬 검색
                 localResults = performLocalSearch(searchRequest, page, size);
             }
+        }
+        if (!localResults.getContent().isEmpty()) {
+            List<Movie> updatedMovies = localResults.getContent().stream()
+                    .peek(Movie::updateCombinedRating)
+                    .collect(Collectors.toList());
+
+            movieRepository.saveAll(updatedMovies);
         }
 
         return localResults.map(movieMapper::toListResponse);
@@ -196,13 +207,15 @@ public class MovieService {
 
         // 🎯 3가지 핵심 조건만 사용한 복합 검색
         boolean hasTitle = searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty();
-        boolean hasGenres = searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty();
+        boolean hasGenres = searchRequest.getGenreIds() != null &&
+                !searchRequest.getGenreIds().isEmpty() &&
+                searchRequest.getGenreIds().stream().anyMatch(id -> id != null); // null 요소 체크 추가
         boolean hasRating = searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null;
 
         // 1. 🏆 최고급 검색: 제목 + 장르 + 평점
         if (hasTitle && hasGenres && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return movieRepository.findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
                     searchRequest.getTitle(),
@@ -225,7 +238,7 @@ public class MovieService {
         // 3. 제목 + 평점
         else if (hasTitle && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return movieRepository.findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
                     searchRequest.getTitle(),
@@ -238,7 +251,7 @@ public class MovieService {
         // 4. 장르 + 평점
         else if (hasGenres && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return movieRepository.findByGenres_IdInAndCombinedRatingBetween(
                     searchRequest.getGenreIds(),
@@ -257,7 +270,7 @@ public class MovieService {
         }
         else if (hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
             return movieRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
         }
 
@@ -288,5 +301,26 @@ public class MovieService {
             default:
                 return "combinedRating";      // 기본값
         }
+    }
+
+    @Transactional
+    public void fixAllCombinedRatings() {
+        List<Movie> allMovies = movieRepository.findAll();
+
+        for (Movie movie : allMovies) {
+            try {
+                // ratings 컬렉션을 명시적으로 로딩
+                movie.getRatings().size(); // Lazy Loading 강제 실행
+
+                movie.updateCombinedRating();
+                System.out.println("영화 ID " + movie.getId() + " (" + movie.getTitle() + ") - " +
+                        "combinedRating: " + movie.getCombinedRating());
+            } catch (Exception e) {
+                System.err.println("영화 ID " + movie.getId() + " 업데이트 실패: " + e.getMessage());
+            }
+        }
+
+        movieRepository.saveAll(allMovies);
+        System.out.println("모든 영화 combinedRating 업데이트 완료!");
     }
 }

@@ -58,14 +58,14 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     List<Drama> findTop20ByOrderByCombinedRatingDesc();
 
     // ⭐ 통합 평점 범위 검색
-    @Query("SELECT d FROM Drama d WHERE COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+    @Query("SELECT d FROM Drama d WHERE COALESCE(d.combinedRating, d.voteAverage/2) BETWEEN :minRating AND :maxRating")
     Page<Drama> findByCombinedRatingBetween(@Param("minRating") Double minRating,
                                             @Param("maxRating") Double maxRating,
                                             Pageable pageable);
 
     @Query("SELECT DISTINCT d FROM Drama d WHERE " +
             "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
-            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+            "COALESCE(d.combinedRating, d.voteAverage/2) BETWEEN :minRating AND :maxRating")
     Page<Drama> findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
             @Param("title") String title,
             @Param("minRating") Double minRating,
@@ -76,7 +76,7 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     // 장르 + 통합평점 범위 검색
     @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
             "g.id IN :genreIds AND " +
-            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+            "COALESCE(d.combinedRating, d.voteAverage/2) BETWEEN :minRating AND :maxRating")
     Page<Drama> findByGenres_IdInAndCombinedRatingBetween(
             @Param("genreIds") List<Long> genreIds,
             @Param("minRating") Double minRating,
@@ -88,7 +88,7 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
             "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
             "g.id IN :genreIds AND " +
-            "COALESCE(d.combinedRating, d.voteAverage) BETWEEN :minRating AND :maxRating")
+            "COALESCE(d.combinedRating, d.voteAverage/2) BETWEEN :minRating AND :maxRating")
     Page<Drama> findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
             @Param("title") String title,
             @Param("genreIds") List<Long> genreIds,

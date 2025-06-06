@@ -3,6 +3,8 @@ package com.basic.miniPjt5.mapper;
 import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
+import com.basic.miniPjt5.repository.DramaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -12,10 +14,14 @@ import java.util.stream.Collectors;
 @Component
 public class DramaMapper {
 
+    @Autowired
+    private DramaRepository dramaRepository;
+
     // Entity -> Response DTO (상세)
     public DramaDTO.Response toResponse(Drama drama) {
         // combinedRating 업데이트 (매번 최신 값으로)
         drama.updateCombinedRating();
+        dramaRepository.save(drama);
 
         return DramaDTO.Response.builder()
                 .id(drama.getId())
@@ -47,6 +53,7 @@ public class DramaMapper {
     public DramaDTO.ListResponse toListResponse(Drama drama) {
         // combinedRating 업데이트 (매번 최신 값으로)
         drama.updateCombinedRating();
+        dramaRepository.save(drama);
 
         return DramaDTO.ListResponse.builder()
                 .id(drama.getId())
@@ -86,6 +93,7 @@ public class DramaMapper {
 
         // 생성 시 combinedRating 초기화
         drama.updateCombinedRating();
+        dramaRepository.save(drama);
 
         return drama;
     }

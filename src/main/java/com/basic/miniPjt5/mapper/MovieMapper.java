@@ -4,6 +4,8 @@ package com.basic.miniPjt5.mapper;
 import com.basic.miniPjt5.DTO.MovieDTO;
 import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
+import com.basic.miniPjt5.repository.MovieRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -13,10 +15,14 @@ import java.util.stream.Collectors;
 @Component
 public class MovieMapper {
 
+    @Autowired
+    private MovieRepository movieRepository;
+
     // Entity -> Response DTO (상세)
     public MovieDTO.Response toResponse(Movie movie) {
         // combinedRating 업데이트 (매번 최신 값으로)
         movie.updateCombinedRating();
+        movieRepository.save(movie);
 
         return MovieDTO.Response.builder()
                 .id(movie.getId())
@@ -45,6 +51,7 @@ public class MovieMapper {
     public MovieDTO.ListResponse toListResponse(Movie movie) {
         // combinedRating 업데이트 (매번 최신 값으로)
         movie.updateCombinedRating();
+        movieRepository.save(movie);
 
         return MovieDTO.ListResponse.builder()
                 .id(movie.getId())
@@ -79,6 +86,7 @@ public class MovieMapper {
 
         // 생성 시 combinedRating 초기화
         movie.updateCombinedRating();
+        movieRepository.save(movie);
 
         return movie;
     }
