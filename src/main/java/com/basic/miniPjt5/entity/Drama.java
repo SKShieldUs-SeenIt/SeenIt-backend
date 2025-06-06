@@ -67,15 +67,33 @@ public class Drama implements Content {
 
     // 통합 평점 계산 (Movie와 동일)
     public Double calculateCombinedRating() {
-        double tmdbTotalScore = this.voteAverage/2 * this.voteCount;
-        double userTotalScore = ratings.stream()
-                .mapToDouble(rating -> rating.getScore().doubleValue())
-                .sum();
+        if (this.voteAverage == null || this.voteCount == null) {
+            return 0.0;
+        }
 
-        int totalVotes = this.voteCount + ratings.size();
+        // TMDB 총점 = voteAverage * voteCount
+        double tmdbTotalScore = this.voteAverage/2 * this.voteCount;
+
+        // 사용자 총점 (ratings가 null일 수 있음을 고려)
+        double userTotalScore = 0.0;
+        int userRatingCount = 0;
+
+        if (this.ratings != null && !this.ratings.isEmpty()) {
+            userTotalScore = ratings.stream()
+                    .filter(rating -> rating.getScore() != null)  // null 체크 추가
+                    .mapToDouble(rating -> rating.getScore().doubleValue())
+                    .sum();
+            userRatingCount = this.ratings.size();
+        }
+
+        // 전체 투표 수
+        int totalVotes = this.voteCount + userRatingCount;
+
         if (totalVotes == 0) return 0.0;
 
+        // 통합 평균 = (TMDB 총점 + 사용자 총점) / 전체 투표 수
         double combinedAverage = (tmdbTotalScore + userTotalScore) / totalVotes;
+
         return Math.round(combinedAverage * 100.0) / 100.0;
     }
 

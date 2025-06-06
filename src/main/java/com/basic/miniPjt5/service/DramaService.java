@@ -3,6 +3,7 @@ package com.basic.miniPjt5.service;
 import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
+import com.basic.miniPjt5.entity.Movie;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -114,7 +115,7 @@ public class DramaService {
         // 1. 🏆 최고급 검색: 제목 + 장르 + 평점
         if (hasTitle && hasGenres && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return dramaRepository.findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
                     searchRequest.getTitle(),
@@ -151,7 +152,7 @@ public class DramaService {
         // 4. 제목 + 평점
         else if (hasTitle && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return dramaRepository.findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
                     searchRequest.getTitle(),
@@ -177,7 +178,7 @@ public class DramaService {
         // 6. 장르 + 평점
         else if (hasGenres && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
 
             return dramaRepository.findByGenres_IdInAndCombinedRatingBetween(
                     searchRequest.getGenreIds(),
@@ -209,7 +210,7 @@ public class DramaService {
         }
         else if (hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
             return dramaRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
         }
         else if (hasSeasons) {
@@ -249,5 +250,26 @@ public class DramaService {
             default:
                 return "combinedRating";      // 기본값
         }
+    }
+
+    @Transactional
+    public void fixAllCombinedRatings() {
+        List<Drama> allDramas = dramaRepository.findAll();
+
+        for (Drama drama : allDramas) {
+            try {
+                // ratings 컬렉션을 명시적으로 로딩
+                drama.getRatings().size(); // Lazy Loading 강제 실행
+
+                drama.updateCombinedRating();
+                System.out.println("드라마 ID " + drama.getId() + " (" + drama.getTitle() + ") - " +
+                        "combinedRating: " + drama.getCombinedRating());
+            } catch (Exception e) {
+                System.err.println("드라마 ID " + drama.getId() + " 업데이트 실패: " + e.getMessage());
+            }
+        }
+
+        dramaRepository.saveAll(allDramas);
+        System.out.println("모든 드라마 combinedRating 업데이트 완료!");
     }
 }

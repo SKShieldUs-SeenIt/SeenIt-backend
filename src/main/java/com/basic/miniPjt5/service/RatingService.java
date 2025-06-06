@@ -270,11 +270,15 @@ public class RatingService {
         if (rating.getMovie() != null) {
             dto.setMovieId(rating.getMovie().getId());
             dto.setMovieTitle(rating.getMovie().getTitle());
+            dto.setMoviePosterPath(rating.getMovie().getPosterPath());
+            dto.setContentType("MOVIE");
         }
 
         if (rating.getDrama() != null) {
             dto.setDramaId(rating.getDrama().getId());
             dto.setDramaTitle(rating.getDrama().getTitle());
+            dto.setDramaPosterPath(rating.getDrama().getPosterPath());
+            dto.setContentType("DRAMA");
         }
 
         dto.setCreatedAt(rating.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
