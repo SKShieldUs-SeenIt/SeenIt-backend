@@ -52,4 +52,60 @@ public class Movie implements Content {
     private String overview; // 영화 줄거리
     private String posterPath; // 포스터 이미지 경로 (TMDB에서 제공)
     private String releaseDate; // 개봉일 (String으로 저장 권장, 필요시 LocalDate로 파싱)
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
+
+    // 통합 평균 평점 (TMDB + 사용자)
+    @Column
+    private Double combinedRating;
+
+    // 통합 평점 계산
+    public Double calculateCombinedRating() {
+        if (this.voteAverage == null || this.voteCount == null) {
+            return 0.0;
+        }
+
+        // TMDB 총점 = voteAverage * voteCount
+        double tmdbTotalScore = this.voteAverage/2 * this.voteCount;
+
+        // 사용자 총점 (ratings가 null일 수 있음을 고려)
+        double userTotalScore = 0.0;
+        int userRatingCount = 0;
+
+        if (this.ratings != null && !this.ratings.isEmpty()) {
+            userTotalScore = ratings.stream()
+                    .filter(rating -> rating.getScore() != null)  // null 체크 추가
+                    .mapToDouble(rating -> rating.getScore().doubleValue())
+                    .sum();
+            userRatingCount = this.ratings.size();
+        }
+
+        // 전체 투표 수
+        int totalVotes = this.voteCount + userRatingCount;
+
+        if (totalVotes == 0) return 0.0;
+
+        // 통합 평균 = (TMDB 총점 + 사용자 총점) / 전체 투표 수
+        double combinedAverage = (tmdbTotalScore + userTotalScore) / totalVotes;
+
+        return Math.round(combinedAverage * 100.0) / 100.0;
+    }
+
+    // 사용자 평균 평점만 계산
+    public Double getUserAverageRating() {
+        if (ratings.isEmpty()) return null;
+
+        return ratings.stream()
+                .mapToDouble(rating -> rating.getScore().doubleValue())
+                .average()
+                .orElse(0.0);
+    }
+
+    // 평점 업데이트
+    public void updateCombinedRating() {
+        this.combinedRating = calculateCombinedRating();
+    }
 }

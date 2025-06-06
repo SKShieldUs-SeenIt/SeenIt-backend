@@ -1,6 +1,9 @@
 package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.RatingDTO;
+import com.basic.miniPjt5.exception.BusinessException;
+import com.basic.miniPjt5.exception.ErrorCode;
+import com.basic.miniPjt5.repository.ReviewRepository;
 import com.basic.miniPjt5.security.UserPrincipal;
 import com.basic.miniPjt5.service.RatingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,22 +30,29 @@ import java.util.Map;
 public class RatingController {
 
     private final RatingService ratingService;
+    private final ReviewRepository reviewRepository;
 
     @PostMapping
-    @Operation(summary = "별점 등록/수정", description = "작품에 대한 별점 등록 또는 수정")
+    @Operation(summary = "별점만 등록/수정", description = "리뷰 없이 별점만 등록 또는 수정 (레거시 지원)")
     @SecurityRequirement(name = "bearerAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "별점 등록/수정 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 필요"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
     public ResponseEntity<RatingDTO.Response> createOrUpdateRating(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody RatingDTO.Request requestDto) {
 
         Long userId = userPrincipal.getId();
-        RatingDTO.Response response = ratingService.createOrUpdateRating(userId, requestDto);
 
+        // 🆕 리뷰 존재 확인 - 이미 리뷰가 있다면 별점만 따로 등록할 수 없음
+        if (requestDto.getMovieId() != null) {
+            if (reviewRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId()).isPresent()) {
+                throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
+        } else if (requestDto.getDramaId() != null) {
+            if (reviewRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId()).isPresent()) {
+                throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
+        }
+
+        RatingDTO.Response response = ratingService.createOrUpdateRating(userId, requestDto);
         return ResponseEntity.ok(response);
     }
 
@@ -181,10 +191,19 @@ public class RatingController {
 
     @GetMapping("/movies/{movieId}/distribution")
     @Operation(summary = "영화 별점 분포", description = "특정 영화의 별점 분포 조회")
-    public ResponseEntity<Map<Integer, Long>> getMovieScoreDistribution(
+    public ResponseEntity<Map<String, Long>> getMovieScoreDistribution(
             @Parameter(description = "영화 ID", example = "1")
             @PathVariable Long movieId) {
-        Map<Integer, Long> distribution = ratingService.getScoreDistribution(movieId, null);
+        Map<String, Long> distribution = ratingService.getScoreDistribution(movieId, null);
+        return ResponseEntity.ok(distribution);
+    }
+
+    @GetMapping("/dramas/{dramaId}/distribution")
+    @Operation(summary = "드라마 별점 분포", description = "특정 드라마의 별점 분포 조회")
+    public ResponseEntity<Map<String, Long>> getDramaScoreDistribution(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long dramaId) {
+        Map<String, Long> distribution = ratingService.getScoreDistribution(null, dramaId);
         return ResponseEntity.ok(distribution);
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +61,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), movie);
                 rating = ratingRepository.save(rating);
             }
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
         } else {
             // 드라마 별점 처리
             Drama drama = dramaRepository.findById(requestDto.getDramaId())
@@ -76,6 +79,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), drama);
                 rating = ratingRepository.save(rating);
             }
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
         }
 
         return convertToResponseDto(rating);
@@ -92,7 +97,21 @@ public class RatingService {
             throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
         }
 
+        Movie movie = rating.getMovie();
+        Drama drama = rating.getDrama();
+
         ratingRepository.delete(rating);
+
+        // ⭐ 평점 재계산
+        if (movie != null) {
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
+        }
+        if (drama != null) {
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
+        }
+
     }
 
     // 사용자가 준 별점 조회
@@ -113,16 +132,20 @@ public class RatingService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByMovieId(movieId).orElse(0.0);
-        Long ratingCount = ratingRepository.countByMovieId(movieId);
+        // 사용자 평점만
+        Double combinedRating = movie.getCombinedRating() != null ?
+                movie.getCombinedRating() : movie.getVoteAverage();
+        Long userRatingCount = ratingRepository.countByMovieId(movieId);
+
+        Long totalRatingCount = (long) movie.getVoteCount() + userRatingCount;
 
         return RatingDTO.AverageResponse.builder()
                 .contentId(movieId)
-                .contentType("Movie")
+                .contentType("MOVIE")
                 .contentTitle(movie.getTitle())
                 .posterPath(movie.getPosterPath())
-                .averageScore(roundToTwoDecimals(averageScore))
-                .ratingCount(ratingCount)
+                .averageScore(roundToTwoDecimals(combinedRating))  // ⭐ 통합 평점 사용
+                .ratingCount(totalRatingCount)  // ⭐ 전체 투표 수
                 .tmdbRating(movie.getVoteAverage())
                 .build();
 
@@ -133,16 +156,22 @@ public class RatingService {
         Drama drama = dramaRepository.findById(dramaId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByDramaId(dramaId).orElse(0.0);
-        Long ratingCount = ratingRepository.countByDramaId(dramaId);
+        Double combinedRating = drama.getCombinedRating() != null ?
+                drama.getCombinedRating() : drama.getVoteAverage();
+
+        // 사용자 평점 통계
+        Long userRatingCount = ratingRepository.countByDramaId(dramaId);
+
+        // 전체 투표 수 = TMDB 투표 수 + 사용자 투표 수
+        Long totalRatingCount = (long) drama.getVoteCount() + userRatingCount;
 
         return RatingDTO.AverageResponse.builder()
                 .contentId(dramaId)
                 .contentType("DRAMA")
                 .contentTitle(drama.getTitle())
                 .posterPath(drama.getPosterPath())
-                .averageScore(roundToTwoDecimals(averageScore))
-                .ratingCount(ratingCount)
+                .averageScore(roundToTwoDecimals(combinedRating))  // ⭐ 통합 평점 사용
+                .ratingCount(totalRatingCount)  // ⭐ 전체 투표 수
                 .tmdbRating(drama.getVoteAverage())
                 .build();
     }
@@ -181,42 +210,47 @@ public class RatingService {
     }
 
     // 별점 분포 조회
-    public Map<Integer, Long> getScoreDistribution(Long movieId, Long dramaId) {
+    public Map<String, Long> getScoreDistribution(Long movieId, Long dramaId) {
         Object[][] distribution = null;
 
         if (movieId != null) {
-            // 영화 존재 확인
             if (!movieRepository.existsById(movieId)) {
                 throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
             }
             distribution = ratingRepository.findScoreDistributionByMovieId(movieId);
         } else if (dramaId != null) {
-            // 드라마 존재 확인
             if (!dramaRepository.existsById(dramaId)) {
                 throw new BusinessException(ErrorCode.DRAMA_NOT_FOUND);
             }
             distribution = ratingRepository.findScoreDistributionByDramaId(dramaId);
         }
 
-        Map<Integer, Long> result = new HashMap<>();
+        Map<String, Long> result = new HashMap<>();
 
-        // 1~10점 초기화
+        // 0.5~5.0점 초기화 (0.5 단위)
         for (int i = 1; i <= 10; i++) {
-            result.put(i, 0L);
+            BigDecimal score = new BigDecimal(i).divide(new BigDecimal("2"));
+            result.put(score.toPlainString(), 0L);
         }
 
         // 실제 데이터 입력
         if (distribution != null) {
             for (Object[] row : distribution) {
-                Integer score = (Integer) row[0];
-                Long count = ((Number) row[1]).longValue();
-                result.put(score, count);
+                if (row[0] != null && row[1] != null) {
+                    BigDecimal score;
+                    if (row[0] instanceof BigDecimal) {
+                        score = (BigDecimal) row[0];
+                    } else {
+                        score = new BigDecimal(row[0].toString());
+                    }
+                    Long count = ((Number) row[1]).longValue();
+                    result.put(score.toPlainString(), count);
+                }
             }
         }
 
         return result;
     }
-
     // 요청 검증
     private void validateRatingRequest(RatingDTO.Request requestDto) {
         if ((requestDto.getMovieId() == null && requestDto.getDramaId() == null) ||
@@ -236,11 +270,15 @@ public class RatingService {
         if (rating.getMovie() != null) {
             dto.setMovieId(rating.getMovie().getId());
             dto.setMovieTitle(rating.getMovie().getTitle());
+            dto.setMoviePosterPath(rating.getMovie().getPosterPath());
+            dto.setContentType("MOVIE");
         }
 
         if (rating.getDrama() != null) {
             dto.setDramaId(rating.getDrama().getId());
             dto.setDramaTitle(rating.getDrama().getTitle());
+            dto.setDramaPosterPath(rating.getDrama().getPosterPath());
+            dto.setContentType("DRAMA");
         }
 
         dto.setCreatedAt(rating.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

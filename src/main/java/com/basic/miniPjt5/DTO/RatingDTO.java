@@ -1,11 +1,10 @@
 package com.basic.miniPjt5.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +20,9 @@ public class RatingDTO {
 
         @Schema(description = "별점 (1-10점)", example = "8", minimum = "1", maximum = "10", required = true)
         @NotNull(message = "별점은 필수입니다.")
-        @Min(value = 1, message = "별점은 1점 이상이어야 합니다.")
-        @Max(value = 10, message = "별점은 10점 이하여야 합니다.")
-        private Integer score;
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal score;
 
         @Schema(description = "영화 ID (영화 평점시 필수)", example = "1")
         private Long movieId;
@@ -44,7 +43,7 @@ public class RatingDTO {
         private Long id;
 
         @Schema(description = "별점", example = "8")
-        private Integer score;
+        private BigDecimal score;
 
         @Schema(description = "사용자명", example = "홍길동")
         private String username;
@@ -130,14 +129,14 @@ public class RatingDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 별점", example = "8.7")
-        private Double averageScore;
+        @Schema(description = "통합 평균 별점 (TMDB + 사용자)", example = "8.7")
+        private Double averageScore;  // 통합 평점으로 사용
 
-        @Schema(description = "총 별점 개수", example = "1234")
+        @Schema(description = "총 별점 개수 (TMDB + 사용자)", example = "1234")
         private Long totalRatingCount;
 
-        @Schema(description = "점수별 분포", example = "{\"1\": 5, \"2\": 10, \"3\": 20, ...}")
-        private Map<Integer, Long> scoreDistribution;
+        @Schema(description = "사용자 점수별 분포", example = "{\"0.5\": 5, \"1.0\": 10, \"1.5\": 20, ...}")
+        private Map<String, Long> scoreDistribution;
 
         @Schema(description = "표준편차", example = "1.2")
         private Double standardDeviation;
@@ -148,14 +147,27 @@ public class RatingDTO {
         @Schema(description = "TMDB 투표 수", example = "5678")
         private Integer tmdbVoteCount;
 
-        @Schema(description = "최고 점수", example = "10")
-        private Integer highestScore;
+        @Schema(description = "사용자 평점 중 최고 점수", example = "5")
+        private BigDecimal highestScore;
 
-        @Schema(description = "최저 점수", example = "1")
-        private Integer lowestScore;
+        @Schema(description = "사용자 평점 중 최저 점수", example = "0.5")
+        private BigDecimal lowestScore;
 
         @Schema(description = "최근 평점 동향")
         private List<RecentRatingTrend> recentTrends;
+
+        // 추가 필드들을 위해 @JsonInclude 사용하여 기존 스키마 유지하면서 확장
+        @Schema(description = "사용자 평균 별점", example = "8.2")
+        private Double userAverageScore;
+
+        @Schema(description = "사용자 별점 개수", example = "150")
+        private Integer userRatingCount;
+
+        @Schema(description = "TMDB 총점", example = "48150.5")
+        private Double tmdbTotalScore;
+
+        @Schema(description = "사용자 총점", example = "1230")
+        private Double userTotalScore;
     }
 
     @Schema(description = "간단한 별점 정보 DTO")

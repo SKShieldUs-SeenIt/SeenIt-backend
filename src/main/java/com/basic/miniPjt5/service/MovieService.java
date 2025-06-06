@@ -73,6 +73,8 @@ public class MovieService {
             movie.setGenres(genres);
         }
 
+        movie.updateCombinedRating();
+
         Movie savedMovie = movieRepository.save(movie);
         return movieMapper.toResponse(savedMovie);
     }
@@ -93,6 +95,8 @@ public class MovieService {
             }
             movie.setGenres(genres);
         }
+
+        movie.updateCombinedRating();
 
         Movie updatedMovie = movieRepository.save(movie);
         return movieMapper.toResponse(updatedMovie);
@@ -120,6 +124,13 @@ public class MovieService {
                 // 다시 로컬 검색
                 localResults = performLocalSearch(searchRequest, page, size);
             }
+        }
+        if (!localResults.getContent().isEmpty()) {
+            List<Movie> updatedMovies = localResults.getContent().stream()
+                    .peek(Movie::updateCombinedRating)
+                    .collect(Collectors.toList());
+
+            movieRepository.saveAll(updatedMovies);
         }
 
         return localResults.map(movieMapper::toListResponse);
@@ -149,8 +160,9 @@ public class MovieService {
 
     // 평점 높은 영화 조회
     public List<MovieDTO.ListResponse> getTopRatedMovies() {
-        List<Movie> movies = movieRepository.findTop20ByOrderByVoteAverageDesc();
-        return movies.stream()
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("combinedRating").descending());
+        Page<Movie> moviePage = movieRepository.findAll(pageable);
+        return moviePage.getContent().stream()
                 .map(movieMapper::toListResponse)
                 .toList();
     }
@@ -186,24 +198,129 @@ public class MovieService {
     }
 
     private Page<Movie> performLocalSearch(MovieDTO.SearchRequest searchRequest, int page, int size) {
-        // 정렬 설정
+        String validatedSortBy = validateAndConvertSortBy(searchRequest.getSortBy());
         Sort sort = Sort.by(
                 Sort.Direction.fromString(searchRequest.getSortDirection()),
-                searchRequest.getSortBy()
+                validatedSortBy
         );
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // 검색 조건에 따른 쿼리 실행
-        if (searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty()) {
-            return movieRepository.findByTitleContainingIgnoreCase(searchRequest.getTitle(), pageable);
-        } else if (searchRequest.getGenreIds() != null && !searchRequest.getGenreIds().isEmpty()) {
-            return movieRepository.findByGenres_IdIn(searchRequest.getGenreIds(), pageable);
-        } else if (searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null) {
+        // 🎯 3가지 핵심 조건만 사용한 복합 검색
+        boolean hasTitle = searchRequest.getTitle() != null && !searchRequest.getTitle().trim().isEmpty();
+        boolean hasGenres = searchRequest.getGenreIds() != null &&
+                !searchRequest.getGenreIds().isEmpty() &&
+                searchRequest.getGenreIds().stream().anyMatch(id -> id != null); // null 요소 체크 추가
+        boolean hasRating = searchRequest.getMinRating() != null || searchRequest.getMaxRating() != null;
+
+        // 1. 🏆 최고급 검색: 제목 + 장르 + 평점
+        if (hasTitle && hasGenres && hasRating) {
             Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
-            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 10.0;
-            return movieRepository.findByVoteAverageBetween(minRating, maxRating, pageable);
-        } else {
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
+
+            return movieRepository.findByTitleContainingIgnoreCaseAndGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 2. 제목 + 장르
+        else if (hasTitle && hasGenres) {
+            return movieRepository.findByTitleContainingIgnoreCaseAndGenres_IdIn(
+                    searchRequest.getTitle(),
+                    searchRequest.getGenreIds(),
+                    pageable
+            );
+        }
+
+        // 3. 제목 + 평점
+        else if (hasTitle && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
+
+            return movieRepository.findByTitleContainingIgnoreCaseAndCombinedRatingBetween(
+                    searchRequest.getTitle(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 4. 장르 + 평점
+        else if (hasGenres && hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
+
+            return movieRepository.findByGenres_IdInAndCombinedRatingBetween(
+                    searchRequest.getGenreIds(),
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+        // 5. 단일 조건들
+        else if (hasTitle) {
+            return movieRepository.findByTitleContainingIgnoreCase(searchRequest.getTitle(), pageable);
+        }
+        else if (hasGenres) {
+            return movieRepository.findByGenres_IdIn(searchRequest.getGenreIds(), pageable);
+        }
+        else if (hasRating) {
+            Double minRating = searchRequest.getMinRating() != null ? searchRequest.getMinRating() : 0.0;
+            Double maxRating = searchRequest.getMaxRating() != null ? searchRequest.getMaxRating() : 5.0;
+            return movieRepository.findByCombinedRatingBetween(minRating, maxRating, pageable);
+        }
+
+        // 6. 조건 없으면 통합 평점 순으로 전체 조회
+        else {
             return movieRepository.findAll(pageable);
         }
+    }
+
+    private String validateAndConvertSortBy(String sortBy) {
+        if (sortBy == null) {
+            return "combinedRating"; // 통합 평점을 기본값으로
+        }
+
+        switch (sortBy.toLowerCase()) {
+            case "rating":
+                return "combinedRating";      // 통합 평점
+            case "tmdbrating":
+                return "voteAverage";         // TMDB 평점
+            case "title":
+                return "title";
+            case "releasedate":
+                return "releaseDate";
+            case "votecount":
+                return "voteCount";
+            case "voteaverage":
+                return "voteAverage";
+            default:
+                return "combinedRating";      // 기본값
+        }
+    }
+
+    @Transactional
+    public void fixAllCombinedRatings() {
+        List<Movie> allMovies = movieRepository.findAll();
+
+        for (Movie movie : allMovies) {
+            try {
+                // ratings 컬렉션을 명시적으로 로딩
+                movie.getRatings().size(); // Lazy Loading 강제 실행
+
+                movie.updateCombinedRating();
+                System.out.println("영화 ID " + movie.getId() + " (" + movie.getTitle() + ") - " +
+                        "combinedRating: " + movie.getCombinedRating());
+            } catch (Exception e) {
+                System.err.println("영화 ID " + movie.getId() + " 업데이트 실패: " + e.getMessage());
+            }
+        }
+
+        movieRepository.saveAll(allMovies);
+        System.out.println("모든 영화 combinedRating 업데이트 완료!");
     }
 }

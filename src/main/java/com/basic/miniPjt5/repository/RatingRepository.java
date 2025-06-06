@@ -59,72 +59,90 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     // 평점 높은 영화 목록 (평점 3개 이상인 작품만)
     @Query(value = """
         SELECT m.movie_id, 'MOVIE' as content_type, m.title, m.poster_path, 
-               AVG(r.score) as avg_score, COUNT(r.rating_id) as rating_count
+               COALESCE(m.combined_rating, m.vote_average) as combined_score, 
+               (m.vote_count + COALESCE(user_ratings.rating_count, 0)) as total_count
         FROM movies m 
-        INNER JOIN ratings r ON m.movie_id = r.movie_id 
-        GROUP BY m.movie_id, m.title, m.poster_path 
-        HAVING COUNT(r.rating_id) >= 3 
-        ORDER BY avg_score DESC, rating_count DESC
+        LEFT JOIN (
+            SELECT r.movie_id, COUNT(r.rating_id) as rating_count 
+            FROM ratings r 
+            GROUP BY r.movie_id
+        ) user_ratings ON m.movie_id = user_ratings.movie_id
+        WHERE COALESCE(m.combined_rating, m.vote_average) IS NOT NULL
+        ORDER BY combined_score DESC, total_count DESC
         """, nativeQuery = true)
     Page<Object[]> findTopRatedMovies(Pageable pageable);
 
-    // 평점 높은 드라마 목록 (평점 3개 이상인 작품만)
+    // 통합 평점 높은 드라마 목록 (combinedRating 기준)
     @Query(value = """
         SELECT d.drama_id, 'DRAMA' as content_type, d.title, d.poster_path, 
-               AVG(r.score) as avg_score, COUNT(r.rating_id) as rating_count
+               COALESCE(d.combined_rating, d.vote_average) as combined_score,
+               (d.vote_count + COALESCE(user_ratings.rating_count, 0)) as total_count
         FROM dramas d 
-        INNER JOIN ratings r ON d.drama_id = r.drama_id 
-        GROUP BY d.drama_id, d.title, d.poster_path 
-        HAVING COUNT(r.rating_id) >= 3 
-        ORDER BY avg_score DESC, rating_count DESC
+        LEFT JOIN (
+            SELECT r.drama_id, COUNT(r.rating_id) as rating_count 
+            FROM ratings r 
+            GROUP BY r.drama_id
+        ) user_ratings ON d.drama_id = user_ratings.drama_id
+        WHERE COALESCE(d.combined_rating, d.vote_average) IS NOT NULL
+        ORDER BY combined_score DESC, total_count DESC
         """, nativeQuery = true)
     Page<Object[]> findTopRatedDramas(Pageable pageable);
 
-    // 최근 1주일간 평점이 많이 등록된 영화들
+    // 최근 1주일간 평점이 많이 등록된 영화들 (통합 평점 포함)
     @Query(value = """
-        SELECT m.movie_id, m.title, m.poster_path, AVG(r.score) as avg_score, COUNT(r.rating_id) as recent_count
+        SELECT m.movie_id, m.title, m.poster_path, 
+               COALESCE(m.combined_rating, m.vote_average) as combined_score, 
+               COUNT(r.rating_id) as recent_count
         FROM movies m 
         INNER JOIN ratings r ON m.movie_id = r.movie_id 
         WHERE r.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        GROUP BY m.movie_id, m.title, m.poster_path 
-        ORDER BY recent_count DESC, avg_score DESC 
+        GROUP BY m.movie_id, m.title, m.poster_path, m.combined_rating, m.vote_average
+        ORDER BY recent_count DESC, combined_score DESC 
         LIMIT :limit
         """, nativeQuery = true)
     List<Object[]> findRecentlyPopularMovies(@Param("limit") int limit);
 
-    // 최근 1주일간 평점이 많이 등록된 드라마들
+    // 최근 1주일간 평점이 많이 등록된 드라마들 (통합 평점 포함)
     @Query(value = """
-        SELECT d.drama_id, d.title, d.poster_path, AVG(r.score) as avg_score, COUNT(r.rating_id) as recent_count
+        SELECT d.drama_id, d.title, d.poster_path, 
+               COALESCE(d.combined_rating, d.vote_average) as combined_score, 
+               COUNT(r.rating_id) as recent_count
         FROM dramas d 
         INNER JOIN ratings r ON d.drama_id = r.drama_id 
         WHERE r.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        GROUP BY d.drama_id, d.title, d.poster_path 
-        ORDER BY recent_count DESC, avg_score DESC 
+        GROUP BY d.drama_id, d.title, d.poster_path, d.combined_rating, d.vote_average
+        ORDER BY recent_count DESC, combined_score DESC 
         LIMIT :limit
         """, nativeQuery = true)
     List<Object[]> findRecentlyPopularDramas(@Param("limit") int limit);
 
-    // 영화 장르별 평균 평점
+    // 영화 장르별 평균 평점 (통합 평점 기준)
     @Query(value = """
-        SELECT g.name as genre_name, AVG(r.score) as avg_score, COUNT(DISTINCT m.movie_id) as movie_count
+        SELECT g.name as genre_name, 
+               AVG(COALESCE(m.combined_rating, m.vote_average)) as avg_combined_score, 
+               COUNT(DISTINCT m.movie_id) as movie_count
         FROM genres g 
         INNER JOIN movie_genre mg ON g.genre_id = mg.genre_id 
         INNER JOIN movies m ON mg.movie_id = m.movie_id 
-        INNER JOIN ratings r ON m.movie_id = r.movie_id 
+        WHERE COALESCE(m.combined_rating, m.vote_average) IS NOT NULL
         GROUP BY g.genre_id, g.name 
-        ORDER BY avg_score DESC
+        HAVING COUNT(DISTINCT m.movie_id) >= 3
+        ORDER BY avg_combined_score DESC
         """, nativeQuery = true)
     List<Object[]> findAverageRatingByMovieGenre();
 
-    // 드라마 장르별 평균 평점
+    // 드라마 장르별 평균 평점 (통합 평점 기준)
     @Query(value = """
-        SELECT g.name as genre_name, AVG(r.score) as avg_score, COUNT(DISTINCT d.drama_id) as drama_count
+        SELECT g.name as genre_name, 
+               AVG(COALESCE(d.combined_rating, d.vote_average)) as avg_combined_score, 
+               COUNT(DISTINCT d.drama_id) as drama_count
         FROM genres g 
         INNER JOIN drama_genre dg ON g.genre_id = dg.genre_id 
         INNER JOIN dramas d ON dg.drama_id = d.drama_id 
-        INNER JOIN ratings r ON d.drama_id = r.drama_id 
+        WHERE COALESCE(d.combined_rating, d.vote_average) IS NOT NULL
         GROUP BY g.genre_id, g.name 
-        ORDER BY avg_score DESC
+        HAVING COUNT(DISTINCT d.drama_id) >= 3
+        ORDER BY avg_combined_score DESC
         """, nativeQuery = true)
     List<Object[]> findAverageRatingByDramaGenre();
 
@@ -140,18 +158,18 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     @Query("SELECT r.score, COUNT(r) FROM Rating r WHERE r.user.userId = :userId GROUP BY r.score ORDER BY r.score")
     Object[][] findScoreDistributionByUserId(@Param("userId") Long userId);
 
-    // 사용자가 10점을 준 작품들
+    // 사용자가 5점을 준 작품들
     @Query(value = """
-        SELECT 'MOVIE' as content_type, m.title, r.score, r.created_at
-        FROM ratings r 
-        INNER JOIN movies m ON r.movie_id = m.movie_id 
-        WHERE r.user_id = :userId AND r.score = 10
-        UNION ALL
-        SELECT 'DRAMA' as content_type, d.title, r.score, r.created_at
-        FROM ratings r 
-        INNER JOIN dramas d ON r.drama_id = d.drama_id 
-        WHERE r.user_id = :userId AND r.score = 10
-        ORDER BY created_at DESC
-        """, nativeQuery = true)
+    SELECT 'MOVIE' as content_type, m.title, r.score, r.created_at
+    FROM ratings r 
+    INNER JOIN movies m ON r.movie_id = m.movie_id 
+    WHERE r.user_id = :userId AND r.score = 5.0
+    UNION ALL
+    SELECT 'DRAMA' as content_type, d.title, r.score, r.created_at
+    FROM ratings r 
+    INNER JOIN dramas d ON r.drama_id = d.drama_id 
+    WHERE r.user_id = :userId AND r.score = 5.0
+    ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<Object[]> findUserTopRatedContents(@Param("userId") Long userId);
 }

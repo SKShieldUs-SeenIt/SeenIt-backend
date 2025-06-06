@@ -3,6 +3,7 @@ package com.basic.miniPjt5.service;
 import com.basic.miniPjt5.DTO.RatingDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Movie;
+import com.basic.miniPjt5.entity.Rating;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -29,31 +30,59 @@ public class RatingStatisticsService {
     private final DramaRepository dramaRepository;
 
     /**
-     * 영화 평점 통계 상세 조회
+     * 영화 평점 통계 상세 조회 (기존 메서드 시그니처 유지)
      */
     public RatingDTO.StatisticsResponse getMovieStatistics(Long movieId) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByMovieId(movieId).orElse(0.0);
-        Long totalCount = ratingRepository.countByMovieId(movieId);
-        Map<Integer, Long> distribution = getScoreDistribution(movieId, null);
+        // 사용자 평점 통계
+        List<Rating> userRatings = movie.getRatings();
+        Map<String, Long> distribution = getScoreDistribution(movieId, null);
 
-        return new RatingDTO.StatisticsResponse(
-                movieId,                        // contentId
-                "MOVIE",                        // contentType
-                movie.getTitle(),               // contentTitle
-                movie.getPosterPath(),          // posterPath (필요시 null로 변경)
-                roundToTwoDecimals(averageScore), // averageScore
-                totalCount,                     // totalRatingCount
-                distribution,                   // scoreDistribution
-                null,                          // standardDeviation
-                null,                          // tmdbRating
-                null,                          // tmdbVoteCount
-                null,                          // highestScore
-                null,                          // lowestScore
-                null                           // recentTrends
-        );
+        // 사용자 평점 계산
+        Double userAverage = movie.getUserAverageRating();
+        Double userTotalScore = userRatings.isEmpty() ? 0.0 :
+                (double) userRatings.stream().mapToDouble(rating -> rating.getScore().doubleValue()).sum();
+
+        // TMDB 통계
+        Double tmdbTotalScore = movie.getVoteAverage() * movie.getVoteCount();
+
+        // 통합 평점
+        Double combinedRating = movie.calculateCombinedRating();
+
+        // 사용자 평점의 최고/최저점
+        BigDecimal highestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .max(BigDecimal::compareTo)
+                        .orElse(null);
+
+        BigDecimal lowestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .min(BigDecimal::compareTo)
+                        .orElse(null);
+
+        return RatingDTO.StatisticsResponse.builder()
+                .contentId(movieId)
+                .contentType("MOVIE")
+                .contentTitle(movie.getTitle())
+                .posterPath(movie.getPosterPath())
+                .averageScore(combinedRating)                    // 통합 평점
+                .totalRatingCount((long)(movie.getVoteCount() + userRatings.size())) // 전체 투표 수
+                .scoreDistribution(distribution)                 // 사용자 평점 분포
+                .standardDeviation(calculateStandardDeviation(userRatings)) // 사용자 평점 표준편차
+                .tmdbRating(movie.getVoteAverage())             // TMDB 평점
+                .tmdbVoteCount(movie.getVoteCount())            // TMDB 투표 수
+                .highestScore(highestScore)                      // 사용자 최고점
+                .lowestScore(lowestScore)                        // 사용자 최저점
+                .recentTrends(null)                             // 추후 구현
+                .userAverageScore(userAverage)                   // 사용자 평균
+                .userRatingCount(userRatings.size())            // 사용자 투표 수
+                .tmdbTotalScore(tmdbTotalScore)                 // TMDB 총점
+                .userTotalScore(userTotalScore)                 // 사용자 총점
+                .build();
     }
 
     /**
@@ -63,25 +92,48 @@ public class RatingStatisticsService {
         Drama drama = dramaRepository.findById(dramaId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
-        Double averageScore = ratingRepository.findAverageScoreByDramaId(dramaId).orElse(0.0);
-        Long totalCount = ratingRepository.countByDramaId(dramaId);
-        Map<Integer, Long> distribution = getScoreDistribution(null, dramaId);
+        // 사용자 평점 통계
+        List<Rating> userRatings = drama.getRatings();
+        Map<String, Long> distribution = getScoreDistribution(null, dramaId);
 
-        return new RatingDTO.StatisticsResponse(
-                dramaId,                        // contentId
-                "DRAMA",                        // contentType
-                drama.getTitle(),               // contentTitle
-                drama.getPosterPath(),          // posterPath (필요시 null로 변경)
-                roundToTwoDecimals(averageScore), // averageScore
-                totalCount,                     // totalRatingCount
-                distribution,                   // scoreDistribution
-                null,                          // standardDeviation
-                null,                          // tmdbRating
-                null,                          // tmdbVoteCount
-                null,                          // highestScore
-                null,                          // lowestScore
-                null                           // recentTrends
-        );
+        Double userAverage = drama.getUserAverageRating();
+        Double userTotalScore = userRatings.isEmpty() ? 0.0 :
+                (double) userRatings.stream().mapToDouble(rating -> rating.getScore().doubleValue()).sum();
+
+        Double tmdbTotalScore = drama.getVoteAverage() * drama.getVoteCount();
+        Double combinedRating = drama.calculateCombinedRating();
+
+        BigDecimal highestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .max(BigDecimal::compareTo)
+                        .orElse(null);
+
+        BigDecimal lowestScore = userRatings.isEmpty() ? null :
+                userRatings.stream()
+                        .map(Rating::getScore)
+                        .min(BigDecimal::compareTo)
+                        .orElse(null);
+
+        return RatingDTO.StatisticsResponse.builder()
+                .contentId(dramaId)
+                .contentType("DRAMA")
+                .contentTitle(drama.getTitle())
+                .posterPath(drama.getPosterPath())
+                .averageScore(combinedRating)
+                .totalRatingCount((long)(drama.getVoteCount() + userRatings.size()))
+                .scoreDistribution(distribution)
+                .standardDeviation(calculateStandardDeviation(userRatings))
+                .tmdbRating(drama.getVoteAverage())
+                .tmdbVoteCount(drama.getVoteCount())
+                .highestScore(highestScore)
+                .lowestScore(lowestScore)
+                .recentTrends(null)
+                .userAverageScore(userAverage)
+                .userRatingCount(userRatings.size())
+                .tmdbTotalScore(tmdbTotalScore)
+                .userTotalScore(userTotalScore)
+                .build();
     }
 
     /**
@@ -208,26 +260,38 @@ public class RatingStatisticsService {
     }
 
     // 헬퍼 메서드들
-    private Map<Integer, Long> getScoreDistribution(Long movieId, Long dramaId) {
+    private Map<String, Long> getScoreDistribution(Long movieId, Long dramaId) {
         Object[][] distribution = null;
-        
+
         if (movieId != null) {
             distribution = ratingRepository.findScoreDistributionByMovieId(movieId);
         } else if (dramaId != null) {
             distribution = ratingRepository.findScoreDistributionByDramaId(dramaId);
         }
-        
-        Map<Integer, Long> result = new HashMap<>();
+
+        Map<String, Long> result = new HashMap<>();
+
+        // 0.5~5.0점 초기화
         for (int i = 1; i <= 10; i++) {
-            result.put(i, 0L);
+            BigDecimal score = new BigDecimal(i).divide(new BigDecimal("2"));
+            result.put(score.toPlainString(), 0L);
         }
-        
+
         if (distribution != null) {
             for (Object[] row : distribution) {
-                result.put((Integer) row[0], ((Number) row[1]).longValue());
+                if (row[0] != null && row[1] != null) {
+                    BigDecimal score;
+                    if (row[0] instanceof BigDecimal) {
+                        score = (BigDecimal) row[0];
+                    } else {
+                        score = new BigDecimal(row[0].toString());
+                    }
+                    Long count = ((Number) row[1]).longValue();
+                    result.put(score.toPlainString(), count);
+                }
             }
         }
-        
+
         return result;
     }
 
@@ -249,5 +313,21 @@ public class RatingStatisticsService {
         return BigDecimal.valueOf(value)
                 .setScale(2, RoundingMode.HALF_UP)
                 .doubleValue();
+    }
+
+    private Double calculateStandardDeviation(List<Rating> ratings) {
+        if (ratings.size() < 2) return null;
+
+        double mean = ratings.stream()
+                .mapToDouble(rating -> rating.getScore().doubleValue())
+                .average()
+                .orElse(0.0);
+
+        double variance = ratings.stream()
+                .mapToDouble(rating -> Math.pow(rating.getScore().doubleValue() - mean, 2))
+                .average()
+                .orElse(0.0);
+
+        return Math.sqrt(variance);
     }
 }

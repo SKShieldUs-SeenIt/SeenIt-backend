@@ -136,11 +136,14 @@ public class DramaDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 평점", example = "8.9")
+        @Schema(description = "TMDB 평균 평점", example = "8.9")
         private Double voteAverage;
 
         @Schema(description = "투표 수", example = "2567")
         private Integer voteCount;
+
+        @Schema(description = "통합 평점 (TMDB + 사용자)", example = "9.1")
+        private Double combinedRating;
 
         @Schema(description = "시즌 수", example = "1")
         private Integer numberOfSeasons;
@@ -189,11 +192,15 @@ public class DramaDTO {
         @Schema(description = "포스터 URL", example = "https://image.tmdb.org/t/p/w500/poster.jpg")
         private String posterPath;
 
-        @Schema(description = "평균 평점", example = "8.9")
+        @Schema(description = "TMDB 평균 평점", example = "8.9")
         private Double voteAverage;
 
         @Schema(description = "투표 수", example = "2567")
         private Integer voteCount;
+
+
+        @Schema(description = "통합 평점 (TMDB + 사용자)", example = "9.1")
+        private Double combinedRating;
 
         @Schema(description = "첫 방영일", example = "2021-09-17")
         private String firstAirDate;

@@ -3,6 +3,8 @@ package com.basic.miniPjt5.mapper;
 import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
+import com.basic.miniPjt5.repository.DramaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -12,8 +14,15 @@ import java.util.stream.Collectors;
 @Component
 public class DramaMapper {
 
+    @Autowired
+    private DramaRepository dramaRepository;
+
     // Entity -> Response DTO (상세)
     public DramaDTO.Response toResponse(Drama drama) {
+        // combinedRating 업데이트 (매번 최신 값으로)
+        drama.updateCombinedRating();
+        dramaRepository.save(drama);
+
         return DramaDTO.Response.builder()
                 .id(drama.getId())
                 .tmdbId(drama.getTmdbId())
@@ -24,22 +33,28 @@ public class DramaMapper {
                 .posterPath(drama.getPosterPath())
                 .voteAverage(drama.getVoteAverage())
                 .voteCount(drama.getVoteCount())
+                .combinedRating(drama.getCombinedRating()) // ✅ 추가된 매핑
                 .numberOfSeasons(drama.getNumberOfSeasons())
                 .numberOfEpisodes(drama.getNumberOfEpisodes())
-                .genres(drama.getGenres() != null ?drama.getGenres().stream()
-                            .map(genre -> DramaDTO.GenreInfo.builder()
-                                .id(genre.getId())
-                                .name(genre.getName())
-                                .build())
-                            .collect(Collectors.toList()) :
-                            Collections.emptyList())
+                .genres(drama.getGenres() != null ?
+                        drama.getGenres().stream()
+                                .map(genre -> DramaDTO.GenreInfo.builder()
+                                        .id(genre.getId())
+                                        .name(genre.getName())
+                                        .build())
+                                .collect(Collectors.toList()) :
+                        Collections.emptyList())
                 .reviewCount(drama.getReviews() != null ? drama.getReviews().size() : 0)
-                .userAverageRating(calculateUserAverageRating(drama))
+                .userAverageRating(drama.getUserAverageRating()) // ✅ 수정된 부분
                 .build();
     }
 
     // Entity -> ListResponse DTO (목록용)
     public DramaDTO.ListResponse toListResponse(Drama drama) {
+        // combinedRating 업데이트 (매번 최신 값으로)
+        drama.updateCombinedRating();
+        dramaRepository.save(drama);
+
         return DramaDTO.ListResponse.builder()
                 .id(drama.getId())
                 .tmdbId(drama.getTmdbId())
@@ -47,6 +62,7 @@ public class DramaMapper {
                 .posterPath(drama.getPosterPath())
                 .voteAverage(drama.getVoteAverage())
                 .voteCount(drama.getVoteCount())
+                .combinedRating(drama.getCombinedRating()) // ✅ 추가된 매핑
                 .firstAirDate(drama.getFirstAirDate())
                 .numberOfSeasons(drama.getNumberOfSeasons())
                 .numberOfEpisodes(drama.getNumberOfEpisodes())
@@ -56,13 +72,13 @@ public class DramaMapper {
                                 .collect(Collectors.toList()) :
                         Collections.emptyList())
                 .reviewCount(drama.getReviews() != null ? drama.getReviews().size() : 0)
-                .userAverageRating(calculateUserAverageRating(drama))
+                .userAverageRating(drama.getUserAverageRating()) // ✅ 수정된 부분
                 .build();
     }
 
     // CreateRequest -> Entity
     public Drama toEntity(DramaDTO.CreateRequest request) {
-        return Drama.builder()
+        Drama drama = Drama.builder()
                 .tmdbId(request.getTmdbId())
                 .title(request.getTitle())
                 .overview(request.getOverview())
@@ -74,7 +90,12 @@ public class DramaMapper {
                 .numberOfSeasons(request.getNumberOfSeasons())
                 .numberOfEpisodes(request.getNumberOfEpisodes())
                 .build();
-        // 장르는 별도로 설정 필요
+
+        // 생성 시 combinedRating 초기화
+        drama.updateCombinedRating();
+        dramaRepository.save(drama);
+
+        return drama;
     }
 
     // 리스트 변환
@@ -88,16 +109,5 @@ public class DramaMapper {
         return dramas.stream()
                 .map(this::toListResponse)
                 .collect(Collectors.toList());
-    }
-
-    // 사용자 평균 평점 계산
-    private Double calculateUserAverageRating(Drama drama) {
-        if (drama.getReviews() == null || drama.getReviews().isEmpty()) {
-            return null;
-        }
-
-        // 실제로는 Rating 엔티티에서 계산해야 하지만,
-        // 여기서는 임시로 TMDB 평점 반환
-        return drama.getVoteAverage();
     }
 }
