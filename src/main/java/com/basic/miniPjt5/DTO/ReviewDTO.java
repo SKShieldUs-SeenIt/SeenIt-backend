@@ -1,9 +1,10 @@
 package com.basic.miniPjt5.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 public class ReviewDTO {
 
@@ -29,6 +30,12 @@ public class ReviewDTO {
         @Schema(description = "스포일러 포함 여부", example = "false")
         @Builder.Default
         private Boolean isSpoiler = false;
+
+        @Schema(description = "별점 (0.5-5.0)", example = "4.5", minimum = "0.5", maximum = "5.0", required = true)
+        @NotNull(message = "별점은 필수입니다.")
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal rating;
     }
 
     @Schema(description = "리뷰 수정 요청 DTO")
@@ -47,6 +54,11 @@ public class ReviewDTO {
         @Schema(description = "스포일러 포함 여부", example = "false")
         @Builder.Default
         private Boolean isSpoiler = false;
+
+        @Schema(description = "별점 (0.5-5.0)", example = "4.5", minimum = "0.5", maximum = "5.0")
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal rating;
     }
 
     @Schema(description = "리뷰 상세 응답 DTO")
@@ -74,6 +86,12 @@ public class ReviewDTO {
 
         @Schema(description = "스포일러 포함 여부", example = "false")
         private Boolean isSpoiler;
+
+        @Schema(description = "별점 ID", example = "1")
+        private Long ratingId;
+
+        @Schema(description = "별점", example = "4.5")
+        private BigDecimal rating;
 
         @Schema(description = "영화 ID", example = "1")
         private Long movieId;

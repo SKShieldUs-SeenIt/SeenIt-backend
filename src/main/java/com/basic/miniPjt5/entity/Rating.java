@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -58,6 +59,13 @@ public class Rating extends BaseEntity {
     @JoinColumn(name = "drama_id")
     private Drama drama;
 
+    // 생성자 - 영화 별점용
+    // 🆕 수동 setter 추가 (Review 연결용)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    @Setter
+    private Review review;
+
     // 별점 수정 메서드
     public void updateScore(BigDecimal newScore) {
         if (newScore.compareTo(MIN_SCORE) >= 0 &&
@@ -68,7 +76,7 @@ public class Rating extends BaseEntity {
         }
     }
 
-    // 생성자 - 영화 별점용
+    // 🆕 기존 생성자들 유지 (하위 호환성)
     public Rating(User user, BigDecimal score, Movie movie) {
         if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
             throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
@@ -78,7 +86,6 @@ public class Rating extends BaseEntity {
         this.movie = movie;
     }
 
-    // 생성자 - 드라마 별점용
     public Rating(User user, BigDecimal score, Drama drama) {
         if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
             throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
@@ -86,6 +93,27 @@ public class Rating extends BaseEntity {
         this.user = user;
         this.score = score;
         this.drama = drama;
+    }
+
+    // 🆕 새로운 생성자들 (Review 포함)
+    public Rating(User user, BigDecimal score, Movie movie, Review review) {
+        if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
+            throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
+        }
+        this.user = user;
+        this.score = score;
+        this.movie = movie;
+        this.review = review;
+    }
+
+    public Rating(User user, BigDecimal score, Drama drama, Review review) {
+        if (score.compareTo(MIN_SCORE) < 0 || score.compareTo(MAX_SCORE) > 0) {
+            throw new IllegalArgumentException("별점은 0.5~5 사이여야 합니다.");
+        }
+        this.user = user;
+        this.score = score;
+        this.drama = drama;
+        this.review = review;
     }
 
     // 유틸리티 메서드

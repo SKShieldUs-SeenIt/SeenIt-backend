@@ -1,16 +1,10 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.ReviewDTO;
-import com.basic.miniPjt5.entity.Drama;
-import com.basic.miniPjt5.entity.Movie;
-import com.basic.miniPjt5.entity.Review;
-import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.entity.*;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
-import com.basic.miniPjt5.repository.DramaRepository;
-import com.basic.miniPjt5.repository.MovieRepository;
-import com.basic.miniPjt5.repository.ReviewRepository;
-import com.basic.miniPjt5.repository.UserRepository;
+import com.basic.miniPjt5.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +22,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final MovieRepository movieRepository;
     private final DramaRepository dramaRepository;
+    private final RatingRepository ratingRepository;
 
     // 리뷰 생성
     @Transactional
@@ -43,32 +38,61 @@ public class ReviewService {
         checkDuplicateReview(userId, requestDto);
 
         Review review;
+        Rating rating;
 
         // 영화 또는 드라마 설정
         if (requestDto.getMovieId() != null) {
             Movie movie = movieRepository.findById(requestDto.getMovieId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
+            // 1. 리뷰 생성
             review = Review.createMovieReview(
                     user,
                     movie,
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
+            review = reviewRepository.save(review);
+
+            // 2. 별점 생성 (리뷰 포함)
+            rating = new Rating(user, requestDto.getRating(), movie, review);
+            rating = ratingRepository.save(rating);
+
+            // 3. 🆕 양방향 연결 (순환 참조 방지)
+            review.setRating(rating);
+            // reviewRepository.save(review); // 이미 영속성 컨텍스트에 있으므로 불필요
+
+            // 4. 영화 평점 업데이트
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
+
         } else {
             Drama drama = dramaRepository.findById(requestDto.getDramaId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
+            // 1. 리뷰 생성
             review = Review.createDramaReview(
                     user,
                     drama,
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
+            review = reviewRepository.save(review);
+
+            // 2. 별점 생성 (리뷰 포함)
+            rating = new Rating(user, requestDto.getRating(), drama, review);
+            rating = ratingRepository.save(rating);
+
+            // 3. 🆕 양방향 연결 (순환 참조 방지)
+            review.setRating(rating);
+            // reviewRepository.save(review); // 이미 영속성 컨텍스트에 있으므로 불필요
+
+            // 4. 드라마 평점 업데이트
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
         }
 
-        Review savedReview = reviewRepository.save(review);
-        return convertToResponseDto(savedReview);
+        return convertToResponseDto(review);
     }
 
     // 리뷰 수정
@@ -86,6 +110,20 @@ public class ReviewService {
         review.setContent(requestDto.getContent());
         review.setIsSpoiler(requestDto.getIsSpoiler());
 
+        // 별점 수정 (있는 경우)
+        if (requestDto.getRating() != null && review.getRating() != null) {
+            review.getRating().updateScore(requestDto.getRating());
+
+            // 평점 재계산
+            if (review.getMovie() != null) {
+                review.getMovie().updateCombinedRating();
+                movieRepository.save(review.getMovie());
+            } else if (review.getDrama() != null) {
+                review.getDrama().updateCombinedRating();
+                dramaRepository.save(review.getDrama());
+            }
+        }
+
         return convertToResponseDto(review);
     }
 
@@ -100,7 +138,26 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
+        Movie movie = review.getMovie();
+        Drama drama = review.getDrama();
+        Rating rating = review.getRating();
+
+        // 별점도 함께 삭제
+        if (rating != null) {
+            ratingRepository.delete(rating);
+        }
+
         reviewRepository.delete(review);
+
+        // 평점 재계산
+        if (movie != null) {
+            movie.updateCombinedRating();
+            movieRepository.save(movie);
+        }
+        if (drama != null) {
+            drama.updateCombinedRating();
+            dramaRepository.save(drama);
+        }
     }
 
     // 리뷰 조회
@@ -179,12 +236,22 @@ public class ReviewService {
     // 중복 리뷰 확인
     private void checkDuplicateReview(Long userId, ReviewDTO.CreateRequest requestDto) {
         if (requestDto.getMovieId() != null) {
+            // 리뷰 중복 확인
             if (reviewRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId()).isPresent()) {
                 throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
             }
+            // 별점 중복 확인
+            if (ratingRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId()).isPresent()) {
+                throw new BusinessException(ErrorCode.RATING_ALREADY_EXISTS);
+            }
         } else {
+            // 리뷰 중복 확인
             if (reviewRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId()).isPresent()) {
                 throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
+            // 별점 중복 확인
+            if (ratingRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId()).isPresent()) {
+                throw new BusinessException(ErrorCode.RATING_ALREADY_EXISTS);
             }
         }
     }
@@ -198,6 +265,12 @@ public class ReviewService {
         dto.setUserId(review.getUser().getUserId());
         dto.setLikesCount(review.getLikesCount());
         dto.setIsSpoiler(review.getIsSpoiler());
+
+        // 별점 정보 추가
+        if (review.getRating() != null) {
+            dto.setRatingId(review.getRating().getId());
+            dto.setRating(review.getRating().getScore());
+        }
 
         if (review.getMovie() != null) {
             dto.setMovieId(review.getMovie().getId());

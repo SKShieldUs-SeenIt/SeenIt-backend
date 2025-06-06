@@ -47,6 +47,10 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rating_id")
+    private Rating rating;
+
     // 좋아요 증가/감소 메서드
     public void increaseLikes() {
         this.likesCount++;
@@ -101,4 +105,5 @@ public class Review extends BaseEntity {
                 .likesCount(0)
                 .build();
     }
+
 }
