@@ -1,9 +1,12 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.DramaDTO;
+import com.basic.miniPjt5.DTO.DramaDTO;
+import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
-import com.basic.miniPjt5.entity.Movie;
+import com.basic.miniPjt5.entity.Drama;
+import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -35,6 +38,14 @@ public class DramaService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Drama> dramaPage = dramaRepository.findAll(pageable);
+
+        if (!dramaPage.getContent().isEmpty()) {
+            List<Drama> updatedDramas = dramaPage.getContent().stream()
+                    .peek(Drama::updateCombinedRating)
+                    .collect(Collectors.toList());
+
+            dramaRepository.saveAll(updatedDramas);
+        }
         return dramaPage.map(dramaMapper::toListResponse);
     }
 
@@ -42,6 +53,9 @@ public class DramaService {
     public DramaDTO.Response getDramaById(Long id) {
         Drama drama = dramaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
+
+        drama.updateCombinedRating();
+        dramaRepository.save(drama);
 
         return dramaMapper.toResponse(drama);
     }
@@ -62,14 +76,54 @@ public class DramaService {
             }
             drama.setGenres(genres);
         }
-
+        drama.updateCombinedRating();
         Drama savedDrama = dramaRepository.save(drama);
         return dramaMapper.toResponse(savedDrama);
+    }
+
+    // 드라마 수정 (관리자용)
+    @Transactional
+    public DramaDTO.Response updateDrama(Long id, DramaDTO.UpdateRequest request) {
+        Drama drama = dramaRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+
+        updateDramaFields(drama, request);
+
+        // 장르 업데이트
+        if (request.getGenreIds() != null) {
+            List<Genre> genres = genreRepository.findAllById(request.getGenreIds());
+            if (genres.size() != request.getGenreIds().size()) {
+                throw new BusinessException(ErrorCode.GENRE_NOT_FOUND);
+            }
+            drama.setGenres(genres);
+        }
+
+        drama.updateCombinedRating();
+
+        Drama updatedDrama = dramaRepository.save(drama);
+        return dramaMapper.toResponse(updatedDrama);
+    }
+
+    // 영화 삭제 (관리자용)
+    @Transactional
+    public void deleteDrama(Long id) {
+        if (!dramaRepository.existsById(id)) {
+            throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
+        }
+        dramaRepository.deleteById(id);
     }
 
     // 드라마 검색
     public Page<DramaDTO.ListResponse> searchDramas(DramaDTO.SearchRequest searchRequest, int page, int size) {
         Page<Drama> localResults = performLocalSearch(searchRequest, page, size);
+
+        if (!localResults.getContent().isEmpty()) {
+            List<Drama> updatedDramas = localResults.getContent().stream()
+                    .peek(Drama::updateCombinedRating)
+                    .collect(Collectors.toList());
+
+            dramaRepository.saveAll(updatedDramas);
+        }
 
         if (localResults.getTotalElements() < 10 || searchRequest.getTitle() != null) {
             if (contentSearchService != null) {
@@ -271,5 +325,25 @@ public class DramaService {
 
         dramaRepository.saveAll(allDramas);
         System.out.println("모든 드라마 combinedRating 업데이트 완료!");
+    }
+    private void updateDramaFields(Drama drama, DramaDTO.UpdateRequest request) {
+        if (request.getTitle() != null) {
+            drama.setTitle(request.getTitle());
+        }
+        if (request.getOverview() != null) {
+            drama.setOverview(request.getOverview());
+        }
+        if (request.getFirstAirDate() != null) {
+            drama.setFirstAirDate(request.getFirstAirDate());
+        }
+        if (request.getPosterPath() != null) {
+            drama.setPosterPath(request.getPosterPath());
+        }
+        if (request.getVoteAverage() != null) {
+            drama.setVoteAverage(request.getVoteAverage());
+        }
+        if (request.getVoteCount() != null) {
+            drama.setVoteCount(request.getVoteCount());
+        }
     }
 }

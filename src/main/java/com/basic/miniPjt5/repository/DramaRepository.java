@@ -35,10 +35,6 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
     @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE g.id = :genreId")
     List<Drama> findByGenreId(@Param("genreId") Long genreId);
 
-    // 방송 시작년도 기준 검색
-    @Query("SELECT d FROM Drama d WHERE d.firstAirDate LIKE CONCAT(:year, '%')")
-    List<Drama> findByFirstAirYear(@Param("year") String year);
-
     // 시즌 수 기준 검색
     List<Drama> findByNumberOfSeasonsGreaterThan(Integer seasons);
     Page<Drama> findByNumberOfSeasonsBetween(Integer minSeasons, Integer maxSeasons, Pageable pageable);
@@ -108,16 +104,6 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
             Pageable pageable
     );
 
-    // 제목 + 방영년도 복합 검색
-    @Query("SELECT DISTINCT d FROM Drama d WHERE " +
-            "LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')) AND " +
-            "d.firstAirDate LIKE CONCAT(:year, '%')")
-    Page<Drama> findByTitleContainingIgnoreCaseAndFirstAirYear(
-            @Param("title") String title,
-            @Param("year") String year,
-            Pageable pageable
-    );
-
     // 장르 + 시즌수 범위 검색
     @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +
             "g.id IN :genreIds AND " +
@@ -128,10 +114,6 @@ public interface DramaRepository extends JpaRepository<Drama, Long> {  // ✅ Jp
             @Param("maxSeasons") Integer maxSeasons,
             Pageable pageable
     );
-
-    // 방영년도별 검색 (페이징 지원)
-    @Query("SELECT d FROM Drama d WHERE d.firstAirDate LIKE CONCAT(:year, '%')")
-    Page<Drama> findByFirstAirYear(@Param("year") String year, Pageable pageable);
 
     // 제목 + 장르 복합 검색 (기존에 없다면 추가)
     @Query("SELECT DISTINCT d FROM Drama d JOIN d.genres g WHERE " +

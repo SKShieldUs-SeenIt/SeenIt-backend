@@ -43,6 +43,9 @@ public class MovieService {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
+        movie.updateCombinedRating();
+        movieRepository.save(movie);
+
         return movieMapper.toResponse(movie);
     }
 
@@ -50,6 +53,9 @@ public class MovieService {
     public MovieDTO.Response getMovieByTmdbId(Long tmdbId) {
         Movie movie = movieRepository.findByTmdbId(tmdbId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+
+        movie.updateCombinedRating();
+        movieRepository.save(movie);
 
         return movieMapper.toResponse(movie);
     }

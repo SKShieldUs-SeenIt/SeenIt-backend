@@ -316,7 +316,7 @@ public class ContentSearchService {
     public List<Movie> getPopularMovies(int limit) {
         try {
             if (limit <= 0) limit = 20;
-            List<Movie> movies = movieRepository.findTop20ByOrderByVoteAverageDesc();
+            List<Movie> movies = movieRepository.findTop20ByOrderByCombinedRatingDesc();
             return movies.size() > limit ? movies.subList(0, limit) : movies;
         } catch (Exception e) {
             logger.error("인기 영화 조회 실패", e);
@@ -330,7 +330,7 @@ public class ContentSearchService {
     public List<Drama> getTopRatedDramas(int limit) {
         try {
             if (limit <= 0) limit = 20;
-            List<Drama> dramas = dramaRepository.findTop20ByOrderByVoteAverageDesc();
+            List<Drama> dramas = dramaRepository.findTop20ByOrderByCombinedRatingDesc();
             return dramas.size() > limit ? dramas.subList(0, limit) : dramas;
         } catch (Exception e) {
             logger.error("평점 높은 드라마 조회 실패", e);

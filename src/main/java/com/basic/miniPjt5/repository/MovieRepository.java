@@ -61,7 +61,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     // ⭐ 통합 평점 기준 정렬된 영화 목록
     @Query("SELECT m FROM Movie m WHERE m.combinedRating IS NOT NULL ORDER BY m.combinedRating DESC")
-    List<Movie> findTopByCombinedRatingDesc(Pageable pageable);
+    List<Movie> findTop20ByOrderByCombinedRatingDesc();
 
     // ⭐ 통합 평점 범위 검색
     @Query("SELECT m FROM Movie m WHERE COALESCE(m.combinedRating, m.voteAverage/2) BETWEEN :minRating AND :maxRating")
