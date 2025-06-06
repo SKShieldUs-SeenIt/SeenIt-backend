@@ -1,12 +1,8 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.DramaDTO;
-import com.basic.miniPjt5.DTO.DramaDTO;
-import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
-import com.basic.miniPjt5.entity.Drama;
-import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -30,7 +26,9 @@ public class DramaService {
     private final DramaMapper dramaMapper;
     private final ContentSearchService contentSearchService;
 
-    // 드라마 목록 조회
+    private final RatingService ratingService; // 🆕 추가
+
+    // 🔥 수정된 드라마 목록 조회
     public Page<DramaDTO.ListResponse> getDramas(int page, int size, String sortBy, String sortDirection) {
         String validatedSortBy = validateAndConvertSortBy(sortBy);
 
@@ -39,28 +37,32 @@ public class DramaService {
 
         Page<Drama> dramaPage = dramaRepository.findAll(pageable);
 
+        // 🔥 수정: Repository 기반 평점 계산
         if (!dramaPage.getContent().isEmpty()) {
-            List<Drama> updatedDramas = dramaPage.getContent().stream()
-                    .peek(Drama::updateCombinedRating)
-                    .collect(Collectors.toList());
-
-            dramaRepository.saveAll(updatedDramas);
+            for (Drama drama : dramaPage.getContent()) {
+                Double newRating = ratingService.calculateDramaCombinedRating(drama.getId());
+                drama.setCombinedRating(newRating);
+            }
+            dramaRepository.saveAll(dramaPage.getContent());
         }
+
         return dramaPage.map(dramaMapper::toListResponse);
     }
 
-    // 드라마 상세 조회
+    // 🔥 수정된 드라마 상세 조회
     public DramaDTO.Response getDramaById(Long id) {
         Drama drama = dramaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
-        drama.updateCombinedRating();
+        // Repository 기반 평점 계산
+        Double newRating = ratingService.calculateDramaCombinedRating(id);
+        drama.setCombinedRating(newRating);
         dramaRepository.save(drama);
 
         return dramaMapper.toResponse(drama);
     }
 
-    // 드라마 생성
+    // 🔥 수정된 드라마 생성
     @Transactional
     public DramaDTO.Response createDrama(DramaDTO.CreateRequest request) {
         if (dramaRepository.existsByTmdbId(request.getTmdbId())) {
@@ -76,16 +78,22 @@ public class DramaService {
             }
             drama.setGenres(genres);
         }
-        drama.updateCombinedRating();
+
         Drama savedDrama = dramaRepository.save(drama);
+
+        // 🔥 Repository 기반 평점 계산
+        Double newRating = ratingService.calculateDramaCombinedRating(savedDrama.getId());
+        savedDrama.setCombinedRating(newRating);
+        dramaRepository.save(savedDrama);
+
         return dramaMapper.toResponse(savedDrama);
     }
 
-    // 드라마 수정 (관리자용)
+    // 🔥 수정된 드라마 수정
     @Transactional
     public DramaDTO.Response updateDrama(Long id, DramaDTO.UpdateRequest request) {
         Drama drama = dramaRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
         updateDramaFields(drama, request);
 
@@ -98,31 +106,25 @@ public class DramaService {
             drama.setGenres(genres);
         }
 
-        drama.updateCombinedRating();
+        // 🔥 Repository 기반 평점 계산
+        Double newRating = ratingService.calculateDramaCombinedRating(id);
+        drama.setCombinedRating(newRating);
 
         Drama updatedDrama = dramaRepository.save(drama);
         return dramaMapper.toResponse(updatedDrama);
     }
 
-    // 영화 삭제 (관리자용)
-    @Transactional
-    public void deleteDrama(Long id) {
-        if (!dramaRepository.existsById(id)) {
-            throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
-        }
-        dramaRepository.deleteById(id);
-    }
-
-    // 드라마 검색
+    // 🔥 수정된 드라마 검색
     public Page<DramaDTO.ListResponse> searchDramas(DramaDTO.SearchRequest searchRequest, int page, int size) {
         Page<Drama> localResults = performLocalSearch(searchRequest, page, size);
 
+        // 🔥 수정: Repository 기반 평점 계산
         if (!localResults.getContent().isEmpty()) {
-            List<Drama> updatedDramas = localResults.getContent().stream()
-                    .peek(Drama::updateCombinedRating)
-                    .collect(Collectors.toList());
-
-            dramaRepository.saveAll(updatedDramas);
+            for (Drama drama : localResults.getContent()) {
+                Double newRating = ratingService.calculateDramaCombinedRating(drama.getId());
+                drama.setCombinedRating(newRating);
+            }
+            dramaRepository.saveAll(localResults.getContent());
         }
 
         if (localResults.getTotalElements() < 10 || searchRequest.getTitle() != null) {
@@ -133,6 +135,37 @@ public class DramaService {
         }
 
         return localResults.map(dramaMapper::toListResponse);
+    }
+
+    // 🔥 완전히 새로운 안전한 평점 수정 메서드
+    @Transactional
+    public void fixAllCombinedRatings() {
+        List<Drama> allDramas = dramaRepository.findAll();
+
+        for (Drama drama : allDramas) {
+            try {
+                // 🔥 Repository 기반 계산 (컬렉션 참조 X)
+                Double newRating = ratingService.calculateDramaCombinedRating(drama.getId());
+                drama.setCombinedRating(newRating);
+
+                System.out.println("드라마 ID " + drama.getId() + " (" + drama.getTitle() + ") - " +
+                        "combinedRating: " + drama.getCombinedRating());
+            } catch (Exception e) {
+                System.err.println("드라마 ID " + drama.getId() + " 업데이트 실패: " + e.getMessage());
+            }
+        }
+
+        dramaRepository.saveAll(allDramas);
+        System.out.println("모든 드라마 combinedRating 업데이트 완료!");
+    }
+
+    // 영화 삭제 (관리자용)
+    @Transactional
+    public void deleteDrama(Long id) {
+        if (!dramaRepository.existsById(id)) {
+            throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
+        }
+        dramaRepository.deleteById(id);
     }
 
     // 평점 높은 드라마 조회
@@ -306,26 +339,6 @@ public class DramaService {
         }
     }
 
-    @Transactional
-    public void fixAllCombinedRatings() {
-        List<Drama> allDramas = dramaRepository.findAll();
-
-        for (Drama drama : allDramas) {
-            try {
-                // ratings 컬렉션을 명시적으로 로딩
-                drama.getRatings().size(); // Lazy Loading 강제 실행
-
-                drama.updateCombinedRating();
-                System.out.println("드라마 ID " + drama.getId() + " (" + drama.getTitle() + ") - " +
-                        "combinedRating: " + drama.getCombinedRating());
-            } catch (Exception e) {
-                System.err.println("드라마 ID " + drama.getId() + " 업데이트 실패: " + e.getMessage());
-            }
-        }
-
-        dramaRepository.saveAll(allDramas);
-        System.out.println("모든 드라마 combinedRating 업데이트 완료!");
-    }
     private void updateDramaFields(Drama drama, DramaDTO.UpdateRequest request) {
         if (request.getTitle() != null) {
             drama.setTitle(request.getTitle());
@@ -346,4 +359,5 @@ public class DramaService {
             drama.setVoteCount(request.getVoteCount());
         }
     }
+
 }
