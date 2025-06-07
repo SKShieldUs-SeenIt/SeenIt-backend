@@ -23,8 +23,9 @@ public class ReviewService {
     private final MovieRepository movieRepository;
     private final DramaRepository dramaRepository;
     private final RatingRepository ratingRepository;
+    private final RatingService ratingService;
 
-    // 리뷰 생성
+    // 🔥 수정된 리뷰 생성
     @Transactional
     public ReviewDTO.Response createReview(Long userId, ReviewDTO.CreateRequest requestDto) {
         // 입력 검증
@@ -58,12 +59,12 @@ public class ReviewService {
             rating = new Rating(user, requestDto.getRating(), movie, review);
             rating = ratingRepository.save(rating);
 
-            // 3. 🆕 양방향 연결 (순환 참조 방지)
+            // 3. 양방향 연결
             review.setRating(rating);
-            // reviewRepository.save(review); // 이미 영속성 컨텍스트에 있으므로 불필요
 
-            // 4. 영화 평점 업데이트
-            movie.updateCombinedRating();
+            // 4. 🔥 Repository 기반 평점 계산
+            Double newRating = ratingService.calculateMovieCombinedRating(requestDto.getMovieId());
+            movie.setCombinedRating(newRating);
             movieRepository.save(movie);
 
         } else {
@@ -83,19 +84,19 @@ public class ReviewService {
             rating = new Rating(user, requestDto.getRating(), drama, review);
             rating = ratingRepository.save(rating);
 
-            // 3. 🆕 양방향 연결 (순환 참조 방지)
+            // 3. 양방향 연결
             review.setRating(rating);
-            // reviewRepository.save(review); // 이미 영속성 컨텍스트에 있으므로 불필요
 
-            // 4. 드라마 평점 업데이트
-            drama.updateCombinedRating();
+            // 4. 🔥 Repository 기반 평점 계산
+            Double newRating = ratingService.calculateDramaCombinedRating(requestDto.getDramaId());
+            drama.setCombinedRating(newRating);
             dramaRepository.save(drama);
         }
 
         return convertToResponseDto(review);
     }
 
-    // 리뷰 수정
+    // 🔥 수정된 리뷰 수정
     @Transactional
     public ReviewDTO.Response updateReview(Long userId, Long reviewId, ReviewDTO.UpdateRequest requestDto) {
         Review review = reviewRepository.findById(reviewId)
@@ -114,12 +115,14 @@ public class ReviewService {
         if (requestDto.getRating() != null && review.getRating() != null) {
             review.getRating().updateScore(requestDto.getRating());
 
-            // 평점 재계산
+            // 🔥 Repository 기반 평점 재계산
             if (review.getMovie() != null) {
-                review.getMovie().updateCombinedRating();
+                Double newRating = ratingService.calculateMovieCombinedRating(review.getMovie().getId());
+                review.getMovie().setCombinedRating(newRating);
                 movieRepository.save(review.getMovie());
             } else if (review.getDrama() != null) {
-                review.getDrama().updateCombinedRating();
+                Double newRating = ratingService.calculateDramaCombinedRating(review.getDrama().getId());
+                review.getDrama().setCombinedRating(newRating);
                 dramaRepository.save(review.getDrama());
             }
         }
@@ -127,7 +130,7 @@ public class ReviewService {
         return convertToResponseDto(review);
     }
 
-    // 리뷰 삭제
+    // 🔥 수정된 리뷰 삭제
     @Transactional
     public void deleteReview(Long userId, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
@@ -138,8 +141,9 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
-        Movie movie = review.getMovie();
-        Drama drama = review.getDrama();
+        // 🔥 삭제 전에 ID들을 미리 저장
+        Long movieId = review.getMovie() != null ? review.getMovie().getId() : null;
+        Long dramaId = review.getDrama() != null ? review.getDrama().getId() : null;
         Rating rating = review.getRating();
 
         // 별점도 함께 삭제
@@ -149,13 +153,25 @@ public class ReviewService {
 
         reviewRepository.delete(review);
 
-        // 평점 재계산
-        if (movie != null) {
-            movie.updateCombinedRating();
+        // 🔥 즉시 반영
+        if (rating != null) {
+            ratingRepository.flush();
+        }
+        reviewRepository.flush();
+
+        // 🔥 Repository 기반 평점 재계산
+        if (movieId != null) {
+            Movie movie = movieRepository.findById(movieId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+            Double newRating = ratingService.calculateMovieCombinedRating(movieId);
+            movie.setCombinedRating(newRating);
             movieRepository.save(movie);
         }
-        if (drama != null) {
-            drama.updateCombinedRating();
+        if (dramaId != null) {
+            Drama drama = dramaRepository.findById(dramaId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
+            Double newRating = ratingService.calculateDramaCombinedRating(dramaId);
+            drama.setCombinedRating(newRating);
             dramaRepository.save(drama);
         }
     }

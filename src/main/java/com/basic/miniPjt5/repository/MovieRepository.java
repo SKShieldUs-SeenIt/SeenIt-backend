@@ -40,6 +40,16 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.id = :genreId")
     Page<Movie> findByGenreId(@Param("genreId") Long genreId, Pageable pageable);
 
+    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.name = :genreName")
+    Page<Movie> findByGenreName(@Param("genreName") String genreName, Pageable pageable);
+
+    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE LOWER(g.name) = LOWER(:genreName)")
+    Page<Movie> findByGenreNameIgnoreCase(@Param("genreName") String genreName, Pageable pageable);
+
+    // 부분 매치도 지원
+    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE LOWER(g.name) LIKE LOWER(CONCAT('%', :genreName, '%'))")
+    Page<Movie> findByGenreNameContainingIgnoreCase(@Param("genreName") String genreName, Pageable pageable);
+
     // 개봉일 기준 검색
     @Query("SELECT m FROM Movie m WHERE m.releaseDate LIKE CONCAT(:year, '%')")
     List<Movie> findByReleaseYear(@Param("year") String year);
@@ -61,7 +71,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     // ⭐ 통합 평점 기준 정렬된 영화 목록
     @Query("SELECT m FROM Movie m WHERE m.combinedRating IS NOT NULL ORDER BY m.combinedRating DESC")
-    List<Movie> findTopByCombinedRatingDesc(Pageable pageable);
+    List<Movie> findTop20ByOrderByCombinedRatingDesc();
 
     // ⭐ 통합 평점 범위 검색
     @Query("SELECT m FROM Movie m WHERE COALESCE(m.combinedRating, m.voteAverage/2) BETWEEN :minRating AND :maxRating")

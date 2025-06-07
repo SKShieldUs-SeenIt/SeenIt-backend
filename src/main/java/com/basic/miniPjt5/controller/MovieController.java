@@ -40,8 +40,8 @@ public class MovieController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "voteAverage")
-            @RequestParam(defaultValue = "voteAverage") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
@@ -119,7 +119,7 @@ public class MovieController {
     }
 
     @PostMapping("/search")
-    @Operation(summary = "영화 상세 검색", description = "다양한 조건으로 영화 검색")
+    @Operation(summary = "영화 세부 검색", description = "다양한 조건으로 영화 검색")
     public ResponseEntity<PageResponseDTO<MovieDTO.ListResponse>> searchMovies(
             @Valid @RequestBody MovieDTO.SearchRequest searchRequest,
             @Parameter(description = "페이지 번호", example = "0")
@@ -153,8 +153,8 @@ public class MovieController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "voteAverage")
-            @RequestParam(defaultValue = "voteAverage") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
@@ -192,6 +192,33 @@ public class MovieController {
             @RequestParam(defaultValue = "20") int size) {
 
         Page<MovieDTO.ListResponse> moviePage = movieService.getMoviesByGenre(genreId, page, size);
+
+        PageResponseDTO<MovieDTO.ListResponse> response = PageResponseDTO.<MovieDTO.ListResponse>builder()
+                .content(moviePage.getContent())
+                .currentPage(moviePage.getNumber())
+                .totalPages(moviePage.getTotalPages())
+                .totalElements(moviePage.getTotalElements())
+                .size(moviePage.getSize())
+                .hasNext(moviePage.hasNext())
+                .hasPrevious(moviePage.hasPrevious())
+                .isFirst(moviePage.isFirst())
+                .isLast(moviePage.isLast())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/genre/name/{genreName}")
+    @Operation(summary = "장르별 영화 조회", description = "특정 장르의 영화 목록 조회")
+    public ResponseEntity<PageResponseDTO<MovieDTO.ListResponse>> getMoviesByGenreName(
+            @Parameter(description = "장르명", example = "SF")
+            @PathVariable String genreName,
+            @Parameter(description = "페이지 번호", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "20")
+            @RequestParam(defaultValue = "20") int size) {
+
+        Page<MovieDTO.ListResponse> moviePage = movieService.getMoviesByGenreName(genreName, page, size);
 
         PageResponseDTO<MovieDTO.ListResponse> response = PageResponseDTO.<MovieDTO.ListResponse>builder()
                 .content(moviePage.getContent())

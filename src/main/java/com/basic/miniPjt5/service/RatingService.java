@@ -61,7 +61,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), movie);
                 rating = ratingRepository.save(rating);
             }
-            movie.updateCombinedRating();
+            Double newRating = calculateMovieCombinedRating(requestDto.getMovieId());
+            movie.setCombinedRating(newRating);
             movieRepository.save(movie);
         } else {
             // 드라마 별점 처리
@@ -79,7 +80,8 @@ public class RatingService {
                 rating = new Rating(user, requestDto.getScore(), drama);
                 rating = ratingRepository.save(rating);
             }
-            drama.updateCombinedRating();
+            Double newRating = calculateDramaCombinedRating(requestDto.getDramaId());
+            drama.setCombinedRating(newRating);
             dramaRepository.save(drama);
         }
 
@@ -97,18 +99,25 @@ public class RatingService {
             throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
         }
 
-        Movie movie = rating.getMovie();
-        Drama drama = rating.getDrama();
+        Long movieId = rating.getMovie() != null ? rating.getMovie().getId() : null;
+        Long dramaId = rating.getDrama() != null ? rating.getDrama().getId() : null;
 
-        ratingRepository.delete(rating);
+        ratingRepository.deleteById(ratingId);
+        ratingRepository.flush();
 
         // ⭐ 평점 재계산
-        if (movie != null) {
-            movie.updateCombinedRating();
+        if (movieId != null) {
+            Double newRating = calculateMovieCombinedRating(movieId);
+            Movie movie = movieRepository.findById(movieId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+            movie.setCombinedRating(newRating);
             movieRepository.save(movie);
         }
-        if (drama != null) {
-            drama.updateCombinedRating();
+        if (dramaId != null) {
+            Double newRating = calculateDramaCombinedRating(dramaId);
+            Drama drama = dramaRepository.findById(dramaId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
+            drama.setCombinedRating(newRating);
             dramaRepository.save(drama);
         }
 
@@ -269,6 +278,7 @@ public class RatingService {
 
         if (rating.getMovie() != null) {
             dto.setMovieId(rating.getMovie().getId());
+            dto.setTmdbId(rating.getMovie().getTmdbId());
             dto.setMovieTitle(rating.getMovie().getTitle());
             dto.setMoviePosterPath(rating.getMovie().getPosterPath());
             dto.setContentType("MOVIE");
@@ -291,5 +301,64 @@ public class RatingService {
     private Double roundToTwoDecimals(Double value) {
         if (value == null) return 0.0;
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    public Double calculateMovieCombinedRating(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+
+        if (movie.getVoteAverage() == null || movie.getVoteCount() == null) {
+            return 0.0;
+        }
+
+        // TMDB 총점
+        double tmdbTotalScore = movie.getVoteAverage() / 2 * movie.getVoteCount();
+
+        // 🔥 Repository 쿼리로 사용자 평점 계산 (컬렉션 참조 X)
+        Double userAverageScore = ratingRepository.findAverageScoreByMovieId(movieId).orElse(0.0);
+        Long userRatingCount = ratingRepository.countByMovieId(movieId);
+
+        // 전체 투표 수
+        int totalVotes = movie.getVoteCount() + userRatingCount.intValue();
+
+        if (totalVotes == 0) return 0.0;
+
+        // 사용자 총점
+        double userTotalScore = userAverageScore * userRatingCount;
+
+        // 통합 평균
+        double combinedAverage = (tmdbTotalScore + userTotalScore) / totalVotes;
+
+        return Math.round(combinedAverage * 100.0) / 100.0;
+    }
+
+    // 🆕 드라마 통합 평점 계산 메서드
+    public Double calculateDramaCombinedRating(Long dramaId) {
+        Drama drama = dramaRepository.findById(dramaId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
+
+        if (drama.getVoteAverage() == null || drama.getVoteCount() == null) {
+            return 0.0;
+        }
+
+        // TMDB 총점
+        double tmdbTotalScore = drama.getVoteAverage() / 2 * drama.getVoteCount();
+
+        // 🔥 Repository 쿼리로 사용자 평점 계산 (컬렉션 참조 X)
+        Double userAverageScore = ratingRepository.findAverageScoreByDramaId(dramaId).orElse(0.0);
+        Long userRatingCount = ratingRepository.countByDramaId(dramaId);
+
+        // 전체 투표 수
+        int totalVotes = drama.getVoteCount() + userRatingCount.intValue();
+
+        if (totalVotes == 0) return 0.0;
+
+        // 사용자 총점
+        double userTotalScore = userAverageScore * userRatingCount;
+
+        // 통합 평균
+        double combinedAverage = (tmdbTotalScore + userTotalScore) / totalVotes;
+
+        return Math.round(combinedAverage * 100.0) / 100.0;
     }
 }

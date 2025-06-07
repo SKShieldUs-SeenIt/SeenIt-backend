@@ -35,7 +35,7 @@ public class PostService {
     private final MovieRepository movieRepository; // MovieRepository 주입
     private final DramaRepository dramaRepository;
 
-    @Value("%{file.upload-dir}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
 
     public List<PostDTO.ListResponse> getAllPosts(){
