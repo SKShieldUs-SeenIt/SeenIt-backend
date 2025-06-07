@@ -196,15 +196,30 @@ public class MovieService {
             throw new BusinessException(ErrorCode.GENRE_NOT_FOUND);
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("voteAverage").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("combinedRating").descending());
         Page<Movie> moviePage = movieRepository.findByGenreId(genreId, pageable);
+
+        return moviePage.map(movieMapper::toListResponse);
+    }
+
+    public Page<MovieDTO.ListResponse> getMoviesByGenreName(String genreName, int page, int size) {
+        if (!genreRepository.existsByName(genreName)) {
+            throw new BusinessException(ErrorCode.GENRE_NOT_FOUND);
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("combinedRating").descending());
+        // 정확한 매치 우선, 없으면 부분 매치
+        Page<Movie> moviePage = movieRepository.findByGenreNameIgnoreCase(genreName, pageable);
+        if (moviePage.isEmpty()) {
+            moviePage = movieRepository.findByGenreNameContainingIgnoreCase(genreName, pageable);
+        }
 
         return moviePage.map(movieMapper::toListResponse);
     }
 
     // 인기 영화 조회
     public List<MovieDTO.ListResponse> getPopularMovies(int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by("voteAverage").descending());
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("combinedRating").descending());
         Page<Movie> moviePage = movieRepository.findAll(pageable);
 
         return moviePage.getContent().stream()
@@ -350,8 +365,6 @@ public class MovieService {
                 return "releaseDate";
             case "votecount":
                 return "voteCount";
-            case "voteaverage":
-                return "voteAverage";
             default:
                 return "combinedRating";      // 기본값
         }
