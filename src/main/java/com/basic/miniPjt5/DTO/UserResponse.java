@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.DTO;
 
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,9 @@ public class UserResponse {
     @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
     private String profileImageUrl;
 
+    @Schema(description = "사용자 상태", example = "ACTIVE")
+    private UserStatus status;
+
     public static UserResponse fromEntity(User user) {
         if (user == null) return null;
 
@@ -41,6 +45,7 @@ public class UserResponse {
                 .preferredGenres(user.getPreferredGenres())
                 .email(user.getEmail())
                 .profileImageUrl(user.getProfileImageUrl())
+                .status(user.getStatus())
                 .build();
     }
 }

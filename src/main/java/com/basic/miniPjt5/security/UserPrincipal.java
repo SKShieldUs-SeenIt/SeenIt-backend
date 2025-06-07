@@ -1,6 +1,7 @@
 package com.basic.miniPjt5.security;
 
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.UserStatus;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,32 +14,33 @@ public class UserPrincipal implements UserDetails {
 
     private final Long id;
     private final String email;
-    private final String kakaoId;  // 추가된 카카오ID 필드
+    private final String kakaoId;
+    private final UserStatus status;
 
-    // 생성자에 kakaoId 추가
-    public UserPrincipal(Long id, String email, String kakaoId) {
+    public UserPrincipal(Long id, String email, String kakaoId, UserStatus status) {
         this.id = id;
         this.email = email;
         this.kakaoId = kakaoId;
+        this.status = status;
     }
 
-    // User 엔티티로부터 UserPrincipal 생성 시 kakaoId도 함께 세팅
     public static UserPrincipal fromUser(User user) {
         return new UserPrincipal(
                 user.getUserId(),
                 user.getEmail(),
-                user.getKakaoId()   // User 엔티티에 kakaoId getter가 있어야 함
+                user.getKakaoId(),
+                user.getStatus()
         );
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of();  // 현재 권한 사용 안 함
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return null;  // 소셜 로그인이므로 비밀번호 없음
     }
 
     @Override
@@ -48,21 +50,29 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true;  // 계정 만료 X
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true;  // 잠금 X
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true;  // 자격 증명 만료 X
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status == UserStatus.ACTIVE; // pring Security의 필수 메서드
+    }
+
+    public boolean isSuspended() {
+        return status == UserStatus.SUSPENDED;
+    }
+
+    public boolean isActive() {
+        return status == UserStatus.ACTIVE;
     }
 }

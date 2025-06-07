@@ -20,6 +20,7 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS("U002", "이미 존재하는 사용자입니다.", HttpStatus.CONFLICT),
     USER_ACCESS_DENIED("U003", "사용자 접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
     INVALID_PASSWORD("U004", "잘못된 비밀번호입니다.", HttpStatus.BAD_REQUEST),
+    USER_SUSPENDED("U005", "정지된 사용자입니다.", HttpStatus.FORBIDDEN),
 
     // 영화 관련 에러
     MOVIE_NOT_FOUND("M001", "영화를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

@@ -26,57 +26,73 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 public class User extends BaseEntity {
 
+    // 사용자 고유 ID (PK)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
 
+    // 카카오 로그인 ID (Unique, 필수)
+    @NotBlank(message = "카카오 ID는 필수입니다")
     @Column(name = "kakao_id", nullable = false, unique = true)
     private String kakaoId;
 
+    // 사용자 닉네임 (2~50자)
+    @Column(nullable = false, length = 50)
+    @Setter
     @NotBlank(message = "이름은 필수입니다")
     @Size(min = 2, max = 50, message = "이름은 2-50자 사이여야 합니다")
-    @Column(nullable = false, length = 50)
     private String name;
 
+    // 이메일 (Unique, 선택 저장)
+    @Setter
+    @Column(length = 100, unique = true)
     @Email(message = "올바른 이메일 형식이어야 합니다")
-    @Column(length = 100)
     private String email;
 
+    // 사용자 상태 (ENUM: ACTIVE, SUSPENDED, DELETED)
     @Enumerated(EnumType.STRING)
+    @Setter
     @Column(nullable = false)
     private UserStatus status;
 
-    // ** 변경된 부분: 문자열로 저장, Java에선 List<String> 사용 **
+    // 선호 장르 (쉼표로 구분된 문자열 등)
+    @Setter
     @Convert(converter = ListToStringConverter.class)
     @Column(name = "preferred_genres", length = 300)
     private List<String> preferredGenres = new ArrayList<>();
 
+    // 가입일 (기본값: 오늘 날짜)
     @Column(name = "join_date", nullable = false)
     private LocalDate joinDate;
 
+    // 프로필 이미지 URL
+    @Setter
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
+    //활성 상태인지 확인
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
 
+    //사용자 상태 변경
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;
         }
     }
 
+    //프로필 업데이트
     public void updateProfile(String name, String profileImageUrl, List<String> preferredGenres) {
         this.name = name;
         this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
     }
 
+    //가입 날짜 자동 설정
     @PrePersist
     protected void onCreate() {
         if (this.joinDate == null) {
@@ -109,6 +125,21 @@ public class User extends BaseEntity {
                 .joinDate(LocalDate.now())
                 .build();
     }
+
+    // 연관 관계 매핑
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Rating> ratings = new ArrayList<>();
+
+
 
     @Override
     public String toString() {
