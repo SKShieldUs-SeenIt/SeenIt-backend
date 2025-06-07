@@ -278,6 +278,7 @@ public class RatingService {
 
         if (rating.getMovie() != null) {
             dto.setMovieId(rating.getMovie().getId());
+            dto.setTmdbId(rating.getMovie().getTmdbId());
             dto.setMovieTitle(rating.getMovie().getTitle());
             dto.setMoviePosterPath(rating.getMovie().getPosterPath());
             dto.setContentType("MOVIE");

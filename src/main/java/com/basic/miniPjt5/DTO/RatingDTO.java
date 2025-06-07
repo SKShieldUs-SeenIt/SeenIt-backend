@@ -54,6 +54,9 @@ public class RatingDTO {
         @Schema(description = "영화 ID", example = "1")
         private Long movieId;
 
+        @Schema(description = "TMDB ID", example = "1")
+        private Long tmdbId;
+
         @Schema(description = "영화 제목", example = "아바타: 물의 길")
         private String movieTitle;
 
