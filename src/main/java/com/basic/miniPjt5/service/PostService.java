@@ -2,6 +2,7 @@ package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.enums.ContentType;
+import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.repository.DramaRepository;
 import com.basic.miniPjt5.repository.MovieRepository;
 import com.basic.miniPjt5.repository.UserRepository;
@@ -83,6 +84,10 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 수정할 수 있습니다.");
+        }
+
         if(request.getTitle() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "제목을 입력해주세요");
 
@@ -109,6 +114,10 @@ public class PostService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 수정할 수 있습니다.");
+        }
 
         if (!post.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 수정할 수 있습니다.");
@@ -151,6 +160,10 @@ public class PostService {
                 .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 수정할 수 있습니다.");
+        }
 
         if (!post.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 삭제할 수 있습니다.");

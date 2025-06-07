@@ -5,6 +5,7 @@ import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Movie;
 import com.basic.miniPjt5.entity.Rating;
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -42,6 +43,10 @@ public class RatingService {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 별점을 등록/수정할 수 있습니다.");
+        }
 
         Rating rating = null;
 
@@ -98,6 +103,11 @@ public class RatingService {
         if (!rating.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
         }
+
+        if (rating.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 별점을 삭제할 수 있습니다.");
+        }
+
 
         Long movieId = rating.getMovie() != null ? rating.getMovie().getId() : null;
         Long dramaId = rating.getDrama() != null ? rating.getDrama().getId() : null;

@@ -4,7 +4,9 @@ import com.basic.miniPjt5.DTO.CommentDTO;
 import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.exception.BusinessException;
+import com.basic.miniPjt5.exception.UserSuspendedException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.CommentRepository;
 import com.basic.miniPjt5.repository.PostRepository;
@@ -38,6 +40,10 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 댓글을 작성할 수 있습니다.");
+        }
+
         Post post = postRepository.findByCode(postCode)
                 .orElseThrow(()->new BusinessException(ErrorCode.POST_NOT_FOUND));
 
@@ -65,6 +71,11 @@ public class CommentService {
         if (!comment.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 수정할 수 있습니다.");
         }
+
+        if (comment.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 댓글을 수정할 수 있습니다.");
+        }
+
         if(request.getContent() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "내용을 입력해주세요");
         comment.setContent(request.getContent());
@@ -84,6 +95,10 @@ public class CommentService {
 
         if (!comment.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 삭제할 수 있습니다.");
+        }
+
+        if (comment.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 댓글을 삭제할 수 있습니다.");
         }
 
         commentRepository.delete(comment);

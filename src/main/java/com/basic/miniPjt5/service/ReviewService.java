@@ -2,6 +2,7 @@ package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.ReviewDTO;
 import com.basic.miniPjt5.entity.*;
+import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.*;
@@ -34,6 +35,10 @@ public class ReviewService {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 작성할 수 있습니다.");
+        }
 
         // 중복 리뷰 확인
         checkDuplicateReview(userId, requestDto);
@@ -107,6 +112,10 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
+        if (review.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 수정할 수 있습니다.");
+        }
+
         // 리뷰 수정
         review.setContent(requestDto.getContent());
         review.setIsSpoiler(requestDto.getIsSpoiler());
@@ -139,6 +148,10 @@ public class ReviewService {
         // 작성자 확인
         if (!review.getUser().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
+
+        if (review.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 삭제할 수 있습니다.");
         }
 
         // 🔥 삭제 전에 ID들을 미리 저장
