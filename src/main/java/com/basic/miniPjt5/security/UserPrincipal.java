@@ -1,9 +1,11 @@
 package com.basic.miniPjt5.security;
 
 import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.enums.UserStatus;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -16,12 +18,14 @@ public class UserPrincipal implements UserDetails {
     private final String email;
     private final String kakaoId;
     private final UserStatus status;
+    private final UserRole role;
 
-    public UserPrincipal(Long id, String email, String kakaoId, UserStatus status) {
+    public UserPrincipal(Long id, String email, String kakaoId, UserStatus status, UserRole role) {
         this.id = id;
         this.email = email;
         this.kakaoId = kakaoId;
         this.status = status;
+        this.role = role;
     }
 
     public static UserPrincipal fromUser(User user) {
@@ -29,13 +33,14 @@ public class UserPrincipal implements UserDetails {
                 user.getUserId(),
                 user.getEmail(),
                 user.getKakaoId(),
-                user.getStatus()
+                user.getStatus(),
+                user.getRole()
         );
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();  // 현재 권한 사용 안 함
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
@@ -64,15 +69,9 @@ public class UserPrincipal implements UserDetails {
     }
 
     @Override
-    public boolean isEnabled() {
-        return status == UserStatus.ACTIVE; // pring Security의 필수 메서드
-    }
+    public boolean isEnabled() {return status == UserStatus.ACTIVE;}
 
-    public boolean isSuspended() {
-        return status == UserStatus.SUSPENDED;
-    }
+    public boolean isSuspended() {return status == UserStatus.SUSPENDED;}
 
-    public boolean isActive() {
-        return status == UserStatus.ACTIVE;
-    }
-}
+    public boolean isActive() {return status == UserStatus.ACTIVE;
+    }}

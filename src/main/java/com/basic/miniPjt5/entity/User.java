@@ -2,6 +2,7 @@ package com.basic.miniPjt5.entity;
 
 import com.basic.miniPjt5.converter.ListToStringConverter;
 import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,71 +29,64 @@ import java.util.List;
 @Getter
 public class User extends BaseEntity {
 
-    // 사용자 고유 ID (PK)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
 
-    // 카카오 로그인 ID (Unique, 필수)
     @NotBlank(message = "카카오 ID는 필수입니다")
     @Column(name = "kakao_id", nullable = false, unique = true)
     private String kakaoId;
 
-    // 사용자 닉네임 (2~50자)
     @Column(nullable = false, length = 50)
     @Setter
     @NotBlank(message = "이름은 필수입니다")
     @Size(min = 2, max = 50, message = "이름은 2-50자 사이여야 합니다")
     private String name;
 
-    // 이메일 (Unique, 선택 저장)
     @Setter
     @Column(length = 100, unique = true)
     @Email(message = "올바른 이메일 형식이어야 합니다")
     private String email;
 
-    // 사용자 상태 (ENUM: ACTIVE, SUSPENDED, DELETED)
     @Enumerated(EnumType.STRING)
     @Setter
     @Column(nullable = false)
     private UserStatus status;
 
-    // 선호 장르 (쉼표로 구분된 문자열 등)
     @Setter
     @Convert(converter = ListToStringConverter.class)
     @Column(name = "preferred_genres", length = 300)
     private List<String> preferredGenres = new ArrayList<>();
 
-    // 가입일 (기본값: 오늘 날짜)
     @Column(name = "join_date", nullable = false)
     private LocalDate joinDate;
 
-    // 프로필 이미지 URL
     @Setter
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
-    //활성 상태인지 확인
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Setter
+    private UserRole role = UserRole.USER;
+
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
 
-    //사용자 상태 변경
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;
         }
     }
 
-    //프로필 업데이트
     public void updateProfile(String name, String profileImageUrl, List<String> preferredGenres) {
         this.name = name;
         this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
     }
 
-    //가입 날짜 자동 설정
     @PrePersist
     protected void onCreate() {
         if (this.joinDate == null) {
@@ -103,7 +97,7 @@ public class User extends BaseEntity {
     @Builder
     private User(String kakaoId, String name, String email,
                  String profileImageUrl, List<String> preferredGenres,
-                 UserStatus status, LocalDate joinDate) {
+                 UserStatus status, LocalDate joinDate, UserRole role) { // ** role 추가
         this.kakaoId = kakaoId;
         this.name = name;
         this.email = email;
@@ -111,6 +105,7 @@ public class User extends BaseEntity {
         this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
         this.status = status != null ? status : UserStatus.ACTIVE;
         this.joinDate = joinDate != null ? joinDate : LocalDate.now();
+        this.role = role != null ? role : UserRole.USER; // ** 기본값 설정
     }
 
     public static User create(String kakaoId, String name, String email,
@@ -123,10 +118,10 @@ public class User extends BaseEntity {
                 .preferredGenres(preferredGenres)
                 .status(UserStatus.ACTIVE)
                 .joinDate(LocalDate.now())
+                .role(UserRole.USER)
                 .build();
     }
 
-    // 연관 관계 매핑
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
@@ -139,8 +134,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Rating> ratings = new ArrayList<>();
 
-
-
     @Override
     public String toString() {
         return "User{" +
@@ -149,6 +142,7 @@ public class User extends BaseEntity {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
+                ", role=" + role + // ** 추가
                 ", preferredGenres=" + preferredGenres +
                 ", joinDate=" + joinDate +
                 '}';
