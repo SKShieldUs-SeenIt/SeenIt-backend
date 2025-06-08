@@ -3,7 +3,6 @@ package com.basic.miniPjt5.controller;
 import com.basic.miniPjt5.DTO.UserUpdateRequest;
 import com.basic.miniPjt5.DTO.UserResponse;
 import com.basic.miniPjt5.entity.User;
-import com.basic.miniPjt5.security.UserPrincipal; // ✅ 추가
 import com.basic.miniPjt5.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

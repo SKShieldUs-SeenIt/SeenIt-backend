@@ -40,7 +40,15 @@ public class SecurityConfig {
                                 "/swagger-resources/configuration/security"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 🔒 관리자만 접근
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",       // 🔓 로그인, 회원가입, 카카오 로그인 등 인증 관련
+                                "/api/health/**",     // 🔓 헬스 체크 (서버 상태 확인)
+                                "/api/genres/**",     // 🔓 장르 목록 (드롭다운 등에서 사용)
+                                "/api/content/**",    // 🔓 통합 검색 (제목 검색 등)
+                                "/api/statistics/**", // 🔓 리뷰/평점 통계 등
+                                "/api/movies/**",     // 🔓 영화 상세 정보, 목록
+                                "/api/dramas/**"      // 🔓 드라마 상세 정보, 목록
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 // JwtAuthenticationFilter에 UserRepository 주입해서 생성자 호출

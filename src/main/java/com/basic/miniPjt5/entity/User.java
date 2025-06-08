@@ -71,6 +71,7 @@ public class User extends BaseEntity {
     @Setter
     private UserRole role = UserRole.USER;
 
+    //비지니스 메서드
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
     }
@@ -98,34 +99,7 @@ public class User extends BaseEntity {
         }
     }
 
-    @Builder
-    private User(String kakaoId, String name, String email,
-                 String profileImageUrl, List<String> preferredGenres,
-                 UserStatus status, LocalDate joinDate, UserRole role) { // ** role 추가
-        this.kakaoId = kakaoId;
-        this.name = name;
-        this.email = email;
-        this.profileImageUrl = profileImageUrl;
-        this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
-        this.status = status != null ? status : UserStatus.ACTIVE;
-        this.joinDate = joinDate != null ? joinDate : LocalDate.now();
-        this.role = role != null ? role : UserRole.USER; // ** 기본값 설정
-    }
-
-    public static User create(String kakaoId, String name, String email,
-                              String profileImageUrl, List<String> preferredGenres) {
-        return User.builder()
-                .kakaoId(kakaoId)
-                .name(name)
-                .email(email)
-                .profileImageUrl(profileImageUrl)
-                .preferredGenres(preferredGenres)
-                .status(UserStatus.ACTIVE)
-                .joinDate(LocalDate.now())
-                .role(UserRole.USER)
-                .build();
-    }
-
+    //연관 관계 매핑
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
@@ -138,15 +112,41 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Rating> ratings = new ArrayList<>();
 
+    //생성자 및 팩토리 메서드
+    @Builder
+    private User(String kakaoId, String name, String email,
+                 String profileImageUrl, List<String> preferredGenres,
+                 UserStatus status, LocalDate joinDate, UserRole role) {
+        this.kakaoId = kakaoId;
+        this.name = name;
+        this.email = email;
+        this.profileImageUrl = profileImageUrl;
+        this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
+        this.status = status != null ? status : UserStatus.ACTIVE;
+        this.joinDate = joinDate != null ? joinDate : LocalDate.now();
+        this.role = role != null ? role : UserRole.USER;
+    }
+
+    public static User create(String kakaoId, String name, String email,
+                              String profileImageUrl, List<String> preferredGenres) {
+        return User.builder()
+                .kakaoId(kakaoId)
+                .name(name)
+                .email(email)
+                .profileImageUrl(profileImageUrl)
+                .preferredGenres(preferredGenres)
+                .build();
+    }
+
     @Override
     public String toString() {
-        return "User{" +
+        return "{" +
                 "userId=" + userId +
                 ", kakaoId='" + kakaoId + '\'' +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
-                ", role=" + role + // ** 추가
+                ", role=" + role +
                 ", preferredGenres=" + preferredGenres +
                 ", joinDate=" + joinDate +
                 '}';

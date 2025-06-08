@@ -35,8 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtTokenProvider.validateToken(token)) {
                 String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
-                log.info("✅ JWT 토큰 → userId 추출: {}", userIdStr);
-
                 Long userId = Long.valueOf(userIdStr);
                 Optional<User> userOptional = userRepository.findById(userId);
 
@@ -46,9 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
-                                    userPrincipal,
-                                    null,
-                                    userPrincipal.getAuthorities()
+                                    userPrincipal, null, userPrincipal.getAuthorities()
                             );
 
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

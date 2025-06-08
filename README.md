@@ -9,34 +9,75 @@
 ## 🧩 주요 기능
 
 ### 사용자 인증
-- 회원가입 / 로그인
-- 이메일 인증 및 사용자 프로필
+- 로그인
+- 사용자 프로필 관리
 
 ### 콘텐츠 검색
 - 영화 및 드라마 제목 검색
 - 외부 콘텐츠 API 연동 (예: TMDB)
 
-### 리뷰 기능
-- 콘텐츠에 대한 별점 평가
-- 리뷰 텍스트 작성 및 수정
-- 리뷰 댓글 기능
+### 리뷰 및 별점 기능
+- 콘텐츠에 대한 리뷰 작성, 수정, 삭제
+- 별점 등록 및 수정 (1~5점)
+- 리뷰별 댓글 작성 및 삭제
+- 콘텐츠별 평균 별점 자동 계산 및 표시
+- 리뷰 정렬 기능 (최신순, 평점순 등)
 
-### 자유 게시판
-- 일반 게시글 작성 및 토론
+### 게시판
+- 콘텐츠 게시글 작성 및 토론
 - 게시글에 댓글 작성 가능
 
-### 유튜브 링크 공유
-- 콘텐츠별 리뷰/요약 영상 공유
-- 썸네일 및 미리보기 기능 지원
+---
+
+## 🚀 설치 및 실행 방법 
+
+### 1. 저장소 클론
+```
+git clone https://github.com/your-username/SeenIt-backend.git
+cd SeenIt-backend
+```
+
+### 2. 환경 변수 설정
+```
+SPRING_DATASOURCE_URL=jdbc:mariadb://localhost:3306/seenit
+SPRING_DATASOURCE_USERNAME=your_db_username
+SPRING_DATASOURCE_PASSWORD=your_db_password
+KAKAO_REST_API_KEY=your_kakao_api_key
+JWT_SECRET=your_jwt_secret_key'''
+```
+
+### 3. 빌드 및 실행 (Maven 기준)
+```
+./mvnw clean package
+java -jar target/seenit-backend.jar
+```
+
+
+### 4. 서버 접속
+- 기본 서버 주소: http://localhost:8080
+- API 문서: http://localhost:8080/swagger-ui.html
 
 ---
 
 ## 🏗️ 기술 스택
 
-| 분류 | 기술 |
-|------|------|
+| 분류       | 기술 |
+|----------|------|
 | Frontend | React, React Router, Axios, Zustand/Redux (선택), Tailwind CSS |
+| Backend  | Spring Boot, Spring Security, JPA (Hibernate), MariaDB, JWT |
+| 기타       | TMDB API, Kakao Social Login, Swagger (API 문서) |
 
+---
+
+## 🛠️ 개발 도구
+
+| 도구 종류     | 도구명 |
+|-------------|--------|
+| DB 클라이언트 | DBeaver |
+| API 문서화   | Swagger |
+| API 테스트   | Postman (또는 Thunder Client 등 사용 중인 도구) |
+| 형상 관리    | Git, GitHub |
+| IDE         | IntelliJ IDEA, VSCode |
 
 ---
 
@@ -81,3 +122,4 @@ feat: 유튜브 링크 등록 기능 추가
 fix: 리뷰 수정 시 페이지 새로고침 문제 해결
 chore: Prettier 설치 및 설정 파일 추가
 docs: 커밋 메시지 규칙 문서화
+```
