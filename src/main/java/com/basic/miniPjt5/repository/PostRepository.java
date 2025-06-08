@@ -19,4 +19,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByCode(String code);
 
     boolean existsByCode(String code);
+
+    void deleteByContentTypeAndContentId(ContentType contentType, Long contentId);
+
 }
