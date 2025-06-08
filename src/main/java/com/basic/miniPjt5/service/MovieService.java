@@ -3,11 +3,13 @@ package com.basic.miniPjt5.service;
 import com.basic.miniPjt5.DTO.MovieDTO;
 import com.basic.miniPjt5.entity.Genre;
 import com.basic.miniPjt5.entity.Movie;
+import com.basic.miniPjt5.enums.ContentType;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.mapper.MovieMapper;
 import com.basic.miniPjt5.repository.GenreRepository;
 import com.basic.miniPjt5.repository.MovieRepository;
+import com.basic.miniPjt5.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,7 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final PostRepository postRepository;
     private final MovieMapper movieMapper;
     private final ContentSearchService contentSearchService;
     private final RatingService ratingService; // 🆕 추가
@@ -188,6 +191,7 @@ public class MovieService {
             throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
         }
         movieRepository.deleteById(id);
+        postRepository.deleteByContentTypeAndContentId(ContentType.MOVIE, id);
     }
 
     // 장르별 영화 조회
