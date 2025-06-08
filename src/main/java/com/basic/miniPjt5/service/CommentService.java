@@ -5,6 +5,7 @@ import com.basic.miniPjt5.entity.Comment;
 import com.basic.miniPjt5.entity.Post;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.UserSuspendedException;
 import com.basic.miniPjt5.exception.ErrorCode;
@@ -68,8 +69,11 @@ public class CommentService {
         Comment comment = commentRepository.findCommentById(commentId)
                 .orElseThrow(()->new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 수정할 수 있습니다.");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!comment.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글 작성자 또는 관리자만 수정할 수 있습니다.");
         }
 
         if (comment.getUser().getStatus() != UserStatus.ACTIVE) {
@@ -93,8 +97,8 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!comment.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글의 작성자만 삭제할 수 있습니다.");
+        if (!comment.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED, "댓글 작성자 또는 관리자만 삭제할 수 있습니다.");
         }
 
         if (comment.getUser().getStatus() != UserStatus.ACTIVE) {

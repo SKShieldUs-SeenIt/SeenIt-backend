@@ -75,6 +75,10 @@ public class User extends BaseEntity {
         return this.status == UserStatus.ACTIVE;
     }
 
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
+    }
+
     public void changeStatus(UserStatus newStatus, String reason) {
         if (this.status != newStatus) {
             this.status = newStatus;

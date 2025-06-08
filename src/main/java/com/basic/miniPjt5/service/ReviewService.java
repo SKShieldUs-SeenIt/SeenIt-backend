@@ -3,6 +3,7 @@ package com.basic.miniPjt5.service;
 import com.basic.miniPjt5.DTO.ReviewDTO;
 import com.basic.miniPjt5.entity.*;
 import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.*;
@@ -107,9 +108,11 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 작성자 확인
-        if (!review.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!review.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED, "리뷰의 작성자 혹은 관리자만 수정할 수 있습니다.");
         }
 
         if (review.getUser().getStatus() != UserStatus.ACTIVE) {
@@ -145,9 +148,11 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 작성자 확인
-        if (!review.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!review.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED, "리뷰의 작성자 혹은 관리자만 삭제할 수 있습니다.");
         }
 
         if (review.getUser().getStatus() != UserStatus.ACTIVE) {

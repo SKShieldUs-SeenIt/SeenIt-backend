@@ -6,6 +6,7 @@ import com.basic.miniPjt5.entity.Movie;
 import com.basic.miniPjt5.entity.Rating;
 import com.basic.miniPjt5.entity.User;
 import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
@@ -58,8 +59,13 @@ public class RatingService {
             Optional<Rating> existingRating = ratingRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId());
 
             if (existingRating.isPresent()) {
-                // 기존 별점 수정
                 rating = existingRating.get();
+
+                // 작성자 확인 및 권한 체크
+                if (!rating.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+                    throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
+                }
+
                 rating.updateScore(requestDto.getScore());
             } else {
                 // 새 별점 생성
@@ -77,8 +83,13 @@ public class RatingService {
             Optional<Rating> existingRating = ratingRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId());
 
             if (existingRating.isPresent()) {
-                // 기존 별점 수정
                 rating = existingRating.get();
+
+                // 작성자 확인 및 권한 체크
+                if (!rating.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+                    throw new BusinessException(ErrorCode.RATING_ACCESS_DENIED);
+                }
+
                 rating.updateScore(requestDto.getScore());
             } else {
                 // 새 별점 생성
@@ -93,11 +104,13 @@ public class RatingService {
         return convertToResponseDto(rating);
     }
 
+
     // 별점 삭제
     @Transactional
     public void deleteRating(Long userId, Long ratingId) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RATING_NOT_FOUND));
+
 
         // 작성자 확인
         if (!rating.getUser().getUserId().equals(userId)) {
