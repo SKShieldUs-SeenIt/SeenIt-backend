@@ -2,10 +2,7 @@ package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.MovieDTO;
 import com.basic.miniPjt5.DTO.PageResponseDTO;
-import com.basic.miniPjt5.entity.UserWatched;
-import com.basic.miniPjt5.security.UserPrincipal;
 import com.basic.miniPjt5.service.MovieService;
-import com.basic.miniPjt5.service.UserWatchedService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,7 +12,6 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +22,9 @@ import java.util.List;
 public class MovieController {
 
     private final MovieService movieService;
-    private final UserWatchedService userWatchedService;
 
-    public MovieController(MovieService movieService, UserWatchedService userWatchedService) {
+    public MovieController(MovieService movieService) {
         this.movieService = movieService;
-        this.userWatchedService = userWatchedService;
     }
 
     @GetMapping
@@ -245,48 +239,5 @@ public class MovieController {
         return ResponseEntity.ok(popularMovies);
     }
 
-    @PostMapping("/{id}/watched")
-    @Operation(summary = "영화 시청 완료 표시", description = "특정 영화를 시청했다고 표시합니다.")
-    public ResponseEntity<String> markMovieAsWatched(
-            @Parameter(description = "영화 ID", example = "1")
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        if (userPrincipal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        userWatchedService.markAsWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, id);
-        return ResponseEntity.ok("영화를 시청 완료로 표시했습니다.");
-    }
-
-    @GetMapping("/{id}/watched")
-    @Operation(summary = "영화 시청 여부 확인", description = "특정 영화의 시청 여부를 확인합니다.")
-    public ResponseEntity<Boolean> checkMovieWatched(
-            @Parameter(description = "영화 ID", example = "1")
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-        if (userPrincipal == null) {
-            return ResponseEntity.ok(false);
-        }
-
-        boolean isWatched = userWatchedService.isWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, id);
-        return ResponseEntity.ok(isWatched);
-    }
-
-    @DeleteMapping("/{id}/watched")
-    @Operation(summary = "영화 시청 기록 삭제", description = "특정 영화의 시청 기록을 삭제합니다.")
-    public ResponseEntity<String> removeMovieFromWatched(
-            @Parameter(description = "영화 ID", example = "1")
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-        if (userPrincipal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        userWatchedService.removeFromWatched(userPrincipal.getKakaoId(), UserWatched.ContentType.MOVIE, id);
-        return ResponseEntity.ok("영화 시청 기록을 삭제했습니다.");
-    }
 }
