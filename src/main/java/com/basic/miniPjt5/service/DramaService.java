@@ -3,11 +3,13 @@ package com.basic.miniPjt5.service;
 import com.basic.miniPjt5.DTO.DramaDTO;
 import com.basic.miniPjt5.entity.Drama;
 import com.basic.miniPjt5.entity.Genre;
+import com.basic.miniPjt5.enums.ContentType;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
 import com.basic.miniPjt5.repository.DramaRepository;
 import com.basic.miniPjt5.repository.GenreRepository;
 import com.basic.miniPjt5.mapper.DramaMapper;
+import com.basic.miniPjt5.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,9 @@ public class DramaService {
 
     private final DramaRepository dramaRepository;
     private final GenreRepository genreRepository;
+    private final PostRepository postRepository;
     private final DramaMapper dramaMapper;
     private final ContentSearchService contentSearchService;
-
     private final RatingService ratingService; // 🆕 추가
 
     // 🔥 수정된 드라마 목록 조회
@@ -166,6 +168,7 @@ public class DramaService {
             throw new BusinessException(ErrorCode.MOVIE_NOT_FOUND);
         }
         dramaRepository.deleteById(id);
+        postRepository.deleteByContentTypeAndContentId(ContentType.DRAMA, id);
     }
 
     // 평점 높은 드라마 조회
