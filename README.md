@@ -32,20 +32,20 @@
 ─ src.main.java.com.basic.miniPjt5\
 │\
 ├──config # 애플리케이션 전반의 설정 및 환경 구성 \
-├─controller \ # 클라이언트 요청을 처리하는 REST API 엔드포인트
-├─converter\ # DTO ↔ Entity 간 변환 로직 담당
-├─DTO \ # 요청(Request) 및 응답(Response)에 사용되는 데이터 전송 객체
-├─entity\ # DB 테이블과 매핑되는 JPA 엔티티 클래스
-├─enums # 공통으로 사용되는 상수\
-├─exception # 애플리케이션에서 발생하는 예외 정의 및 처리\
-├─jwt #JWT(JSON Web Token) 관련 보안 설정\
-├─mapper Response와 Entity 간 전환 맵핑\
-├─repository\ # JPA를 이용한 DB 접근 계층 (DAO)
-├─response TMDB 응답(JSON)을 엔티티로 변환하기 위한 Reponse 객체\
+├─controller # 클라이언트 요청을 처리하는 REST API 엔드포인트 \
+├─converter # DTO ↔ Entity 간 변환 로직 담당 \
+├─DTO # 요청(Request) 및 응답(Response)에 사용되는 데이터 전송 객체 \
+├─entity # DB 테이블과 매핑되는 JPA 엔티티 클래스 \
+├─enums # 공통으로 사용되는 상수 \
+├─exception # 애플리케이션에서 발생하는 예외 정의 및 처리 \
+├─jwt # JWT(JSON Web Token) 관련 보안 설정 \
+├─mapper # Response와 Entity 간 전환 맵핑 \
+├─repository # JPA를 이용한 DB 접근 계층 (DAO) \
+├─response # TMDB 응답(JSON)을 엔티티로 변환하기 위한 Reponse 객체 \
 ├─security # Spring Security를 이용한 인증 및 권한 부여 설정\
-├─service\ # 비즈니스 로직 처리 계층
-├─specification 복합 검색을 위한 동적 쿼리 생성\
-├─util 데이터 검증, 이미지 불러오기 등 기능 구현\
+├─service # 비즈니스 로직 처리 계층 \
+├─specification # 복합 검색을 위한 동적 쿼리 생성\
+├─util # 데이터 검증, 이미지 불러오기 등 기능 구현\
 ├─resources # 정적 파일, 설정 파일 (application.properties 등)
 
 ## 👨‍👩‍👧‍👦 백엔드 팀 소개 (5조 봤어?)
