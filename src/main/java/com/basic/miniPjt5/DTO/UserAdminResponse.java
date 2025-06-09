@@ -9,6 +9,5 @@ import lombok.Getter;
 public class UserAdminResponse {
     private Long userId;
     private String name;
-    private String email;
     private UserStatus status;
 }

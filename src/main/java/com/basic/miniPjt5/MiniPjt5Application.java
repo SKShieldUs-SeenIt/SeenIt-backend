@@ -26,15 +26,5 @@ public class MiniPjt5Application {
 	public void init() {
 		log.info("Application started successfully!");
 	}
-
-	@Bean
-	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-		return args -> {
-			System.out.println("=== Kakao 관련 Bean 목록 ===");
-			Arrays.stream(ctx.getBeanDefinitionNames())
-					.filter(name -> name.toLowerCase().contains("kakao"))
-					.forEach(System.out::println);
-		};
-	}
 }
 

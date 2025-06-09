@@ -36,7 +36,6 @@ public class UserService {
         return userRepository.findByKakaoId(kakaoUser.getKakaoId())
                 .map(existingUser -> {
                     existingUser.setName(kakaoUser.getName());
-                    existingUser.setEmail(kakaoUser.getEmail());
                     existingUser.setProfileImageUrl(kakaoUser.getProfileImageUrl());
                     existingUser.setStatus(UserStatus.ACTIVE);
                     return existingUser;
@@ -70,7 +69,6 @@ public class UserService {
                 .map(user -> new UserAdminResponse(
                         user.getUserId(),
                         user.getName(),
-                        user.getEmail(),
                         user.getStatus()
                 ))
                 .toList();

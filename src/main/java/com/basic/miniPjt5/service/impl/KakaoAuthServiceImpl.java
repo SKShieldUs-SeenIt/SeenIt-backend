@@ -50,7 +50,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         // 4. User 객체 생성 및 저장 또는 업데이트
         User user = User.builder()
                 .kakaoId(kakaoId)
-                .email(userInfo.getEmail())
                 .name(userInfo.getName())
                 .profileImageUrl(userInfo.getProfileImageUrl())
                 .preferredGenres(null)

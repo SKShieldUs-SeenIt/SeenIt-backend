@@ -27,9 +27,6 @@ public class UserResponse {
     @Schema(description = "선호 장르 목록", example = "[\"드라마\", \"스릴러\"]")
     private List<String> preferredGenres;
 
-    @Schema(description = "이메일 주소", example = "hong@example.com")
-    private String email;
-
     @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
     private String profileImageUrl;
 
@@ -43,7 +40,6 @@ public class UserResponse {
                 .userId(user.getUserId())
                 .name(user.getName())
                 .preferredGenres(user.getPreferredGenres())
-                .email(user.getEmail())
                 .profileImageUrl(user.getProfileImageUrl())
                 .status(user.getStatus())
                 .build();

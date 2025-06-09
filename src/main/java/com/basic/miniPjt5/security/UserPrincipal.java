@@ -15,14 +15,12 @@ import java.util.List;
 public class UserPrincipal implements UserDetails {
 
     private final Long id;
-    private final String email;
     private final String kakaoId;
     private final UserStatus status;
     private final UserRole role;
 
-    public UserPrincipal(Long id, String email, String kakaoId, UserStatus status, UserRole role) {
+    public UserPrincipal(Long id, String kakaoId, UserStatus status, UserRole role) {
         this.id = id;
-        this.email = email;
         this.kakaoId = kakaoId;
         this.status = status;
         this.role = role;
@@ -31,7 +29,6 @@ public class UserPrincipal implements UserDetails {
     public static UserPrincipal fromUser(User user) {
         return new UserPrincipal(
                 user.getUserId(),
-                user.getEmail(),
                 user.getKakaoId(),
                 user.getStatus(),
                 user.getRole()
@@ -50,7 +47,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return kakaoId;
     }
 
     @Override

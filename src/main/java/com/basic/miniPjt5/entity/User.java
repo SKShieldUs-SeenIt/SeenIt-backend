@@ -4,7 +4,6 @@ import com.basic.miniPjt5.converter.ListToStringConverter;
 import com.basic.miniPjt5.enums.UserStatus;
 import com.basic.miniPjt5.enums.UserRole;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -21,7 +20,6 @@ import java.util.List;
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_kakao_id", columnList = "kakao_id"),
-        @Index(name = "idx_email", columnList = "email"),
         @Index(name = "idx_status", columnList = "status")
 })
 @EntityListeners(AuditingEntityListener.class)
@@ -43,11 +41,6 @@ public class User extends BaseEntity {
     @NotBlank(message = "이름은 필수입니다")
     @Size(min = 2, max = 50, message = "이름은 2-50자 사이여야 합니다")
     private String name;
-
-    @Setter
-    @Column(length = 100, unique = true)
-    @Email(message = "올바른 이메일 형식이어야 합니다")
-    private String email;
 
     @Enumerated(EnumType.STRING)
     @Setter
@@ -114,12 +107,11 @@ public class User extends BaseEntity {
 
     //생성자 및 팩토리 메서드
     @Builder
-    private User(String kakaoId, String name, String email,
+    private User(String kakaoId, String name,
                  String profileImageUrl, List<String> preferredGenres,
                  UserStatus status, LocalDate joinDate, UserRole role) {
         this.kakaoId = kakaoId;
         this.name = name;
-        this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
         this.status = status != null ? status : UserStatus.ACTIVE;
@@ -127,12 +119,11 @@ public class User extends BaseEntity {
         this.role = role != null ? role : UserRole.USER;
     }
 
-    public static User create(String kakaoId, String name, String email,
+    public static User create(String kakaoId, String name,
                               String profileImageUrl, List<String> preferredGenres) {
         return User.builder()
                 .kakaoId(kakaoId)
                 .name(name)
-                .email(email)
                 .profileImageUrl(profileImageUrl)
                 .preferredGenres(preferredGenres)
                 .build();
@@ -144,7 +135,6 @@ public class User extends BaseEntity {
                 "userId=" + userId +
                 ", kakaoId='" + kakaoId + '\'' +
                 ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
                 ", status=" + status +
                 ", role=" + role +
                 ", preferredGenres=" + preferredGenres +

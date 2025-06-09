@@ -64,12 +64,4 @@ public class KakaoAuthController {
             }
         }
     }
-
-    // ✅ 테스트용 엔드포인트
-    @Operation(summary = "API 테스트용 엔드포인트", description = "서버 연결 확인을 위한 간단한 테스트 API")
-    @ApiResponse(responseCode = "200", description = "정상 응답 OK 반환")
-    @GetMapping("/test")
-    public String test() {
-        return "OK";
-    }
 }
