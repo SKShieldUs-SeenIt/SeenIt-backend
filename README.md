@@ -28,6 +28,7 @@
 - 게시글 별 댓글 및 대댓글 작성 가능
 ---
 
+
 ## 🗂️ 프로젝트 구조
 ─ src.main.java.com.basic.miniPjt5\
 │\
