@@ -2,7 +2,7 @@
 # 🎬 봤어? (SeenIt)
 
 **"봤어?"는 영화·드라마 콘텐츠를 검색하고, 리뷰를 남기고, 유튜브 영상까지 공유할 수 있는 통합 리뷰 플랫폼입니다.**  
-사용자 간 리뷰와 의견을 나누고, 유튜브 요약 영상도 함께 즐겨보세요!
+사용자 간 리뷰와 의견을 나누며 함께 즐겨보세요!
 
 ---
 
@@ -64,7 +64,7 @@ java -jar target/seenit-backend.jar
 | 분류       | 기술 |
 |----------|------|
 | Frontend | React, React Router, Axios, Zustand/Redux (선택), Tailwind CSS |
-| Backend  | Spring Boot, Spring Security, JPA (Hibernate), MariaDB, JWT |
+| Backend  | Spring Boot, Spring Security, JPA (Hibernate), MariaDB, JWT, Caffeine, Redis |
 | 기타       | TMDB API, Kakao Social Login, Swagger (API 문서) |
 
 ---
