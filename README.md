@@ -39,21 +39,21 @@
 ├─enums # 공통으로 사용되는 상수\
 ├─exception # 애플리케이션에서 발생하는 예외 정의 및 처리\
 ├─jwt #JWT(JSON Web Token) 관련 보안 설정\
-├─mapper\
+├─mapper Response와 Entity 간 전환 맵핑\
 ├─repository\
-├─response \
+├─response TMDB 응답(JSON)을 엔티티로 변환하기 위한 Reponse 객체\
 ├─security # Spring Security를 이용한 인증 및 권한 부여 설정\
 ├─service\
-├─specification\
-├─util\
+├─specification 복합 검색을 위한 동적 쿼리 생성\
+├─util 데이터 검증, 이미지 불러오기 등 기능 구현\
 ├─resources # 정적 파일, 설정 파일 (application.properties 등)
 
 ## 👨‍👩‍👧‍👦 백엔드 팀 소개 (5조 봤어?)
-| 이름  | 역할                                         |
-|-----|--------------------------------------------|
-| 김연주 |                                            |
-| 임종섭 |                                            |
-| 정재운 | 게시글 기능, 댓글 및 대댓글 기능 |
+| 이름  | 역할                            |
+|-----|-------------------------------|
+| 김연주 |                               |
+| 임종섭 | TMDB API 연동 작업, 리뷰 및 별점 작성 기능 |
+| 정재운 | 게시글 기능, 댓글 및 대댓글 기능           |
 
 ## 🚀 설치 및 실행 방법 
 
