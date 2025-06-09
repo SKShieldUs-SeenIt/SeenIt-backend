@@ -70,13 +70,13 @@ SPRING_DATASOURCE_URL=jdbc:mariadb://localhost:3306/seenit
 SPRING_DATASOURCE_USERNAME=your_db_username
 SPRING_DATASOURCE_PASSWORD=your_db_password
 KAKAO_REST_API_KEY=your_kakao_api_key
-JWT_SECRET=your_jwt_secret_key'''
+JWT_SECRET=your_jwt_secret_key
 ```
 
 ### 3. 빌드 및 실행 (Maven 기준)
 ```
 ./mvnw clean package
-java -jar target/seenit-backend.jar
+./mvnw spring-boot:run
 ```
 
 
