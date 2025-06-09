@@ -1,16 +1,12 @@
 package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.ReviewDTO;
-import com.basic.miniPjt5.entity.Drama;
-import com.basic.miniPjt5.entity.Movie;
-import com.basic.miniPjt5.entity.Review;
-import com.basic.miniPjt5.entity.User;
+import com.basic.miniPjt5.entity.*;
+import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.exception.BusinessException;
 import com.basic.miniPjt5.exception.ErrorCode;
-import com.basic.miniPjt5.repository.DramaRepository;
-import com.basic.miniPjt5.repository.MovieRepository;
-import com.basic.miniPjt5.repository.ReviewRepository;
-import com.basic.miniPjt5.repository.UserRepository;
+import com.basic.miniPjt5.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,8 +24,10 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final MovieRepository movieRepository;
     private final DramaRepository dramaRepository;
+    private final RatingRepository ratingRepository;
+    private final RatingService ratingService;
 
-    // 리뷰 생성
+    // 🔥 수정된 리뷰 생성
     @Transactional
     public ReviewDTO.Response createReview(Long userId, ReviewDTO.CreateRequest requestDto) {
         // 입력 검증
@@ -39,70 +37,161 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 작성할 수 있습니다.");
+        }
+
         // 중복 리뷰 확인
         checkDuplicateReview(userId, requestDto);
 
         Review review;
+        Rating rating;
 
         // 영화 또는 드라마 설정
         if (requestDto.getMovieId() != null) {
             Movie movie = movieRepository.findById(requestDto.getMovieId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
 
+            // 1. 리뷰 생성
             review = Review.createMovieReview(
                     user,
                     movie,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
+            review = reviewRepository.save(review);
+
+            // 2. 별점 생성 (리뷰 포함)
+            rating = new Rating(user, requestDto.getRating(), movie, review);
+            rating = ratingRepository.save(rating);
+
+            // 3. 양방향 연결
+            review.setRating(rating);
+
+            // 4. 🔥 Repository 기반 평점 계산
+            Double newRating = ratingService.calculateMovieCombinedRating(requestDto.getMovieId());
+            movie.setCombinedRating(newRating);
+            movieRepository.save(movie);
+
         } else {
             Drama drama = dramaRepository.findById(requestDto.getDramaId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
 
+            // 1. 리뷰 생성
             review = Review.createDramaReview(
                     user,
                     drama,
-                    requestDto.getTitle(),
                     requestDto.getContent(),
                     requestDto.getIsSpoiler()
             );
+            review = reviewRepository.save(review);
+
+            // 2. 별점 생성 (리뷰 포함)
+            rating = new Rating(user, requestDto.getRating(), drama, review);
+            rating = ratingRepository.save(rating);
+
+            // 3. 양방향 연결
+            review.setRating(rating);
+
+            // 4. 🔥 Repository 기반 평점 계산
+            Double newRating = ratingService.calculateDramaCombinedRating(requestDto.getDramaId());
+            drama.setCombinedRating(newRating);
+            dramaRepository.save(drama);
         }
 
-        Review savedReview = reviewRepository.save(review);
-        return convertToResponseDto(savedReview);
+        return convertToResponseDto(review);
     }
 
-    // 리뷰 수정
+    // 🔥 수정된 리뷰 수정
     @Transactional
     public ReviewDTO.Response updateReview(Long userId, Long reviewId, ReviewDTO.UpdateRequest requestDto) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 작성자 확인
-        if (!review.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!review.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED, "리뷰의 작성자 혹은 관리자만 수정할 수 있습니다.");
+        }
+
+        if (review.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 수정할 수 있습니다.");
         }
 
         // 리뷰 수정
         review.setContent(requestDto.getContent());
         review.setIsSpoiler(requestDto.getIsSpoiler());
 
+        // 별점 수정 (있는 경우)
+        if (requestDto.getRating() != null && review.getRating() != null) {
+            review.getRating().updateScore(requestDto.getRating());
+
+            // 🔥 Repository 기반 평점 재계산
+            if (review.getMovie() != null) {
+                Double newRating = ratingService.calculateMovieCombinedRating(review.getMovie().getId());
+                review.getMovie().setCombinedRating(newRating);
+                movieRepository.save(review.getMovie());
+            } else if (review.getDrama() != null) {
+                Double newRating = ratingService.calculateDramaCombinedRating(review.getDrama().getId());
+                review.getDrama().setCombinedRating(newRating);
+                dramaRepository.save(review.getDrama());
+            }
+        }
+
         return convertToResponseDto(review);
     }
 
-    // 리뷰 삭제
+    // 🔥 수정된 리뷰 삭제
     @Transactional
     public void deleteReview(Long userId, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 작성자 확인
-        if (!review.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!review.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED, "리뷰의 작성자 혹은 관리자만 삭제할 수 있습니다.");
+        }
+
+        if (review.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 리뷰를 삭제할 수 있습니다.");
+        }
+
+        // 🔥 삭제 전에 ID들을 미리 저장
+        Long movieId = review.getMovie() != null ? review.getMovie().getId() : null;
+        Long dramaId = review.getDrama() != null ? review.getDrama().getId() : null;
+        Rating rating = review.getRating();
+
+        // 별점도 함께 삭제
+        if (rating != null) {
+            ratingRepository.delete(rating);
         }
 
         reviewRepository.delete(review);
+
+        // 🔥 즉시 반영
+        if (rating != null) {
+            ratingRepository.flush();
+        }
+        reviewRepository.flush();
+
+        // 🔥 Repository 기반 평점 재계산
+        if (movieId != null) {
+            Movie movie = movieRepository.findById(movieId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MOVIE_NOT_FOUND));
+            Double newRating = ratingService.calculateMovieCombinedRating(movieId);
+            movie.setCombinedRating(newRating);
+            movieRepository.save(movie);
+        }
+        if (dramaId != null) {
+            Drama drama = dramaRepository.findById(dramaId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.DRAMA_NOT_FOUND));
+            Double newRating = ratingService.calculateDramaCombinedRating(dramaId);
+            drama.setCombinedRating(newRating);
+            dramaRepository.save(drama);
+        }
     }
 
     // 리뷰 조회
@@ -181,12 +270,22 @@ public class ReviewService {
     // 중복 리뷰 확인
     private void checkDuplicateReview(Long userId, ReviewDTO.CreateRequest requestDto) {
         if (requestDto.getMovieId() != null) {
+            // 리뷰 중복 확인
             if (reviewRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId()).isPresent()) {
                 throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
             }
+            // 별점 중복 확인
+            if (ratingRepository.findByUserIdAndMovieId(userId, requestDto.getMovieId()).isPresent()) {
+                throw new BusinessException(ErrorCode.RATING_ALREADY_EXISTS);
+            }
         } else {
+            // 리뷰 중복 확인
             if (reviewRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId()).isPresent()) {
                 throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
+            // 별점 중복 확인
+            if (ratingRepository.findByUserIdAndDramaId(userId, requestDto.getDramaId()).isPresent()) {
+                throw new BusinessException(ErrorCode.RATING_ALREADY_EXISTS);
             }
         }
     }
@@ -200,6 +299,12 @@ public class ReviewService {
         dto.setUserId(review.getUser().getUserId());
         dto.setLikesCount(review.getLikesCount());
         dto.setIsSpoiler(review.getIsSpoiler());
+
+        // 별점 정보 추가
+        if (review.getRating() != null) {
+            dto.setRatingId(review.getRating().getId());
+            dto.setRating(review.getRating().getScore());
+        }
 
         if (review.getMovie() != null) {
             dto.setMovieId(review.getMovie().getId());
@@ -273,5 +378,9 @@ public class ReviewService {
     private String highlightKeyword(String text, String keyword) {
         if (text == null || keyword == null) return text;
         return text.replaceAll("(?i)" + keyword, "<mark>$0</mark>");
+    }
+
+    public Long countMovieReviews(Long movieId) {
+        return reviewRepository.countByMovieId(movieId);
     }
 }

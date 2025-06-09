@@ -55,11 +55,11 @@ public class StatisticsService {
     
     @Cacheable(value = "topRatedMovies")
     public List<Movie> getTopRatedMovies() {
-        return movieRepository.findTop20ByOrderByVoteAverageDesc();
+        return movieRepository.findTop20ByOrderByCombinedRatingDesc();
     }
     
     @Cacheable(value = "topRatedDramas")
     public List<Drama> getTopRatedDramas() {
-        return dramaRepository.findTop20ByOrderByVoteAverageDesc();
+        return dramaRepository.findTop20ByOrderByCombinedRatingDesc();
     }
 }

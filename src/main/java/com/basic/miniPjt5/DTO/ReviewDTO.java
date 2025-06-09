@@ -1,9 +1,10 @@
 package com.basic.miniPjt5.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 public class ReviewDTO {
 
@@ -14,11 +15,6 @@ public class ReviewDTO {
     @AllArgsConstructor
     @Builder
     public static class CreateRequest {
-
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!", required = true)
-        @NotBlank(message = "제목은 필수입니다.")
-        @Size(min = 2, max = 200, message = "제목은 2-200자 사이여야 합니다.")
-        private String title;
 
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고 연출이 훌륭했습니다...", required = true)
         @NotBlank(message = "내용은 필수입니다.")
@@ -34,6 +30,12 @@ public class ReviewDTO {
         @Schema(description = "스포일러 포함 여부", example = "false")
         @Builder.Default
         private Boolean isSpoiler = false;
+
+        @Schema(description = "별점 (0.5-5.0)", example = "4.5", minimum = "0.5", maximum = "5.0", required = true)
+        @NotNull(message = "별점은 필수입니다.")
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal rating;
     }
 
     @Schema(description = "리뷰 수정 요청 DTO")
@@ -44,11 +46,6 @@ public class ReviewDTO {
     @Builder
     public static class UpdateRequest {
 
-        @Schema(description = "리뷰 제목", example = "정말 재미있는 영화!", required = true)
-        @NotBlank(message = "제목은 필수입니다.")
-        @Size(min = 2, max = 200, message = "제목은 2-200자 사이여야 합니다.")
-        private String title;
-
         @Schema(description = "리뷰 내용", example = "스토리가 탄탄하고 연출이 훌륭했습니다...", required = true)
         @NotBlank(message = "내용은 필수입니다.")
         @Size(min = 10, max = 2000, message = "내용은 10-2000자 사이여야 합니다.")
@@ -57,6 +54,11 @@ public class ReviewDTO {
         @Schema(description = "스포일러 포함 여부", example = "false")
         @Builder.Default
         private Boolean isSpoiler = false;
+
+        @Schema(description = "별점 (0.5-5.0)", example = "4.5", minimum = "0.5", maximum = "5.0")
+        @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
+        @DecimalMax(value = "5.0", message = "별점은 5.0 이하여야 합니다.")
+        private BigDecimal rating;
     }
 
     @Schema(description = "리뷰 상세 응답 DTO")
@@ -84,6 +86,12 @@ public class ReviewDTO {
 
         @Schema(description = "스포일러 포함 여부", example = "false")
         private Boolean isSpoiler;
+
+        @Schema(description = "별점 ID", example = "1")
+        private Long ratingId;
+
+        @Schema(description = "별점", example = "4.5")
+        private BigDecimal rating;
 
         @Schema(description = "영화 ID", example = "1")
         private Long movieId;
@@ -183,9 +191,6 @@ public class ReviewDTO {
 
         @Schema(description = "생성일시", example = "2024-06-04T15:30:00")
         private String createdAt;
-
-        @Schema(description = "하이라이트된 제목", example = "정말 <mark>재미있는</mark> 영화!")
-        private String highlightedTitle;
 
         @Schema(description = "하이라이트된 내용", example = "스토리가 <mark>탄탄하고</mark>...")
         private String highlightedContent;

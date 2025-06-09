@@ -2,6 +2,8 @@ package com.basic.miniPjt5.service;
 
 import com.basic.miniPjt5.DTO.PostDTO;
 import com.basic.miniPjt5.enums.ContentType;
+import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import com.basic.miniPjt5.repository.DramaRepository;
 import com.basic.miniPjt5.repository.MovieRepository;
 import com.basic.miniPjt5.repository.UserRepository;
@@ -35,7 +37,7 @@ public class PostService {
     private final MovieRepository movieRepository; // MovieRepository 주입
     private final DramaRepository dramaRepository;
 
-    @Value("%{file.upload-dir}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
 
     public List<PostDTO.ListResponse> getAllPosts(){
@@ -83,6 +85,10 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 생성할 수 있습니다.");
+        }
+
         if(request.getTitle() == null)
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING, "제목을 입력해주세요");
 
@@ -110,8 +116,12 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!post.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 수정할 수 있습니다.");
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 수정할 수 있습니다.");
+        }
+
+        if (!post.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자 혹은 관리자만 삭제할 수 있습니다.");
         }
 
         if(request.getTitle() == null)
@@ -127,7 +137,7 @@ public class PostService {
             deleteImage(post.getImageUrl());
             newImageUrl = null;
         }
-        //기존 이미지 삭제 후 새로운 이미지 업로드일 경우
+        //새로운 이미지 업로드일 경우
         else if (request.getImage() != null && !request.getImage().isEmpty()) {
             deleteImage(post.getImageUrl());
             newImageUrl = saveImage(request.getImage());
@@ -152,8 +162,12 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!post.getUser().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자만 삭제할 수 있습니다.");
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.USER_SUSPENDED, "정상 상태의 사용자만 글을 삭제할 수 있습니다.");
+        }
+
+        if (!post.getUser().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED, "게시글의 작성자 혹은 관리자만 삭제할 수 있습니다.");
         }
 
         deleteImage(post.getImageUrl());

@@ -2,6 +2,7 @@ package com.basic.miniPjt5.controller;
 
 import com.basic.miniPjt5.DTO.ReviewDTO;
 import com.basic.miniPjt5.security.JwtAuthenticationHelper;
+import com.basic.miniPjt5.security.UserPrincipal;
 import com.basic.miniPjt5.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,33 +29,33 @@ public class ReviewController {
     private final JwtAuthenticationHelper jwtAuthenticationHelper;
 
     @PostMapping
-    @Operation(summary = "리뷰 생성", description = "새로운 리뷰 작성")
+    @Operation(summary = "리뷰+별점 생성", description = "새로운 리뷰와 별점을 동시에 작성")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "리뷰 생성 성공"),
+            @ApiResponse(responseCode = "200", description = "리뷰+별점 생성 성공"),
             @ApiResponse(responseCode = "401", description = "인증 필요"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     public ResponseEntity<ReviewDTO.Response> createReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody ReviewDTO.CreateRequest requestDto) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = userPrincipal.getId();
         ReviewDTO.Response response = reviewService.createReview(userId, requestDto);
 
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{reviewId}")
-    @Operation(summary = "리뷰 수정", description = "기존 리뷰 수정")
+    @Operation(summary = "리뷰+별점 수정", description = "기존 리뷰와 별점을 동시에 수정")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ReviewDTO.Response> updateReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "리뷰 ID", example = "1")
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewDTO.UpdateRequest requestDto) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = userPrincipal.getId();
         ReviewDTO.Response response = reviewService.updateReview(userId, reviewId, requestDto);
 
         return ResponseEntity.ok(response);
@@ -65,11 +65,11 @@ public class ReviewController {
     @Operation(summary = "리뷰 삭제", description = "리뷰 삭제")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteReview(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Parameter(description = "리뷰 ID", example = "1")
             @PathVariable Long reviewId) {
 
-        Long userId = jwtAuthenticationHelper.extractUserId(userDetails);
+        Long userId = userPrincipal.getId();
         reviewService.deleteReview(userId, reviewId);
 
         return ResponseEntity.noContent().build();
@@ -160,5 +160,11 @@ public class ReviewController {
         Page<ReviewDTO.ListResponse> reviews = reviewService.getLatestReviews(pageable);
 
         return ResponseEntity.ok(reviews);
+    }
+
+    @GetMapping("/movies/{movieId}/count")
+    public ResponseEntity<Long> getMovieReviewCount(Long movieId) {
+        Long count = reviewService.countMovieReviews(movieId);
+        return ResponseEntity.ok(count);
     }
 }

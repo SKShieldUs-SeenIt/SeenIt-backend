@@ -35,8 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtTokenProvider.validateToken(token)) {
                 String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
-                log.info("✅ JWT 토큰 → userId 추출: {}", userIdStr);
-
                 Long userId = Long.valueOf(userIdStr);
                 Optional<User> userOptional = userRepository.findById(userId);
 
@@ -45,12 +43,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UserPrincipal userPrincipal = UserPrincipal.fromUser(user);
 
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(
+                                    userPrincipal, null, userPrincipal.getAuthorities()
+                            );
 
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    log.info("✅ SecurityContext 인증 완료: userId = {}", userId);
+                    log.info("✅ SecurityContext 인증 완료: userId = {}, role = {}", userId, user.getRole());
                 } else {
                     log.warn("❌ DB에서 해당 userId 사용자를 찾을 수 없음");
                 }
@@ -74,9 +74,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return path.startsWith("/api/auth/kakao")
                 || path.startsWith("/api/auth/login")
-                || path.startsWith("/api/public");
+                || path.startsWith("/api/public")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars");
     }
-
     /**
      * 🔍 Bearer 토큰 파싱 메서드
      */

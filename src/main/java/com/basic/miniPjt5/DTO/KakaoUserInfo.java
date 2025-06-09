@@ -22,13 +22,6 @@ public class KakaoUserInfo {
         return properties != null ? properties.getNickname() : null;
     }
 
-    public String getEmail() {
-        if (kakaoAccount != null) {
-            return kakaoAccount.getEmail();
-        }
-        return null;
-    }
-
     public String getProfileImageUrl() {
         if (kakaoAccount != null && kakaoAccount.profile != null) {
             return kakaoAccount.profile.getProfileImageUrl();
@@ -42,7 +35,6 @@ public class KakaoUserInfo {
         return "KakaoUserInfo{" +
                 "id=" + id +
                 ", name='" + getName() + '\'' +
-                ", email='" + getEmail() + '\'' +
                 ", profileImageUrl='" + getProfileImageUrl() + '\'' +
                 '}';
     }
@@ -57,13 +49,8 @@ public class KakaoUserInfo {
 
         private Profile profile;
 
-        private String email;
-
         @JsonProperty("profile_name_needs_agreement")
         private Boolean profileNameNeedsAgreement;
-
-        @JsonProperty("email_needs_agreement")
-        private Boolean emailNeedsAgreement;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

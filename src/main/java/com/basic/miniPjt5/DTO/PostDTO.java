@@ -69,9 +69,10 @@ public class PostDTO {
         @Size(max = 255, message = "내용은 255자 이상 작성할 수 없습니다.")
         private String body;
 
-        @Schema(description = "게시글 이미지")
+        @Schema(description = "게시글 이미지", required = false)
         private MultipartFile image;
 
+        @Schema(description = "기존 이미지 삭제만 원할 때 (true면 삭제)", defaultValue = "false")
         private boolean deleteExistingImage;
 
     }

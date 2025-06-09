@@ -52,4 +52,17 @@ public class Movie implements Content {
     private String overview; // 영화 줄거리
     private String posterPath; // 포스터 이미지 경로 (TMDB에서 제공)
     private String releaseDate; // 개봉일 (String으로 저장 권장, 필요시 LocalDate로 파싱)
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
+
+    // 통합 평균 평점 (TMDB + 사용자)
+    @Column
+    private Double combinedRating;
+
+    public void setCombinedRating(Double combinedRating) {
+        this.combinedRating = combinedRating;
+    }
 }

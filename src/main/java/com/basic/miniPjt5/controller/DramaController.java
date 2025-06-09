@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/dramas")
 @Tag(name = "드라마", description = "드라마 관련 API")
@@ -34,8 +32,8 @@ public class DramaController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "voteAverage")
-            @RequestParam(defaultValue = "voteAverage") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
@@ -82,9 +80,29 @@ public class DramaController {
         DramaDTO.Response createdDrama = dramaService.createDrama(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdDrama);
     }
+    
+    @PutMapping("/{id}")
+    @Operation(summary = "드라마 수정", description = "기존 드라마 정보 수정 (관리자 전용)")
+    public ResponseEntity<DramaDTO.Response> updateDrama(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long id,
+            @Valid @RequestBody DramaDTO.UpdateRequest request) {
+
+        DramaDTO.Response updatedDrama = dramaService.updateDrama(id, request);
+        return ResponseEntity.ok(updatedDrama);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "드라마 삭제", description = "드라마 삭제 (관리자 전용)")
+    public ResponseEntity<Void> deleteDrama(
+            @Parameter(description = "드라마 ID", example = "1")
+            @PathVariable Long id) {
+        dramaService.deleteDrama(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/search")
-    @Operation(summary = "드라마 상세 검색", description = "다양한 조건으로 드라마 검색")
+    @Operation(summary = "드라마 세부 검색", description = "다양한 조건으로 드라마 검색")
     public ResponseEntity<PageResponseDTO<DramaDTO.ListResponse>> searchDramas(
             @Valid @RequestBody DramaDTO.SearchRequest searchRequest,
             @Parameter(description = "페이지 번호", example = "0")
@@ -118,8 +136,8 @@ public class DramaController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "정렬 기준", example = "first_air_date")
-            @RequestParam(defaultValue = "first_air_date") String sortBy,
+            @Parameter(description = "정렬 기준", example = "combinedRating")
+            @RequestParam(defaultValue = "combinedRating") String sortBy,
             @Parameter(description = "정렬 방향", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
@@ -145,4 +163,5 @@ public class DramaController {
 
         return ResponseEntity.ok(response);
     }
+
 }

@@ -2,8 +2,8 @@ package com.basic.miniPjt5.entity;
 
 import com.basic.miniPjt5.converter.ListToStringConverter;
 import com.basic.miniPjt5.enums.UserStatus;
+import com.basic.miniPjt5.enums.UserRole;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -20,13 +20,11 @@ import java.util.List;
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_kakao_id", columnList = "kakao_id"),
-        @Index(name = "idx_email", columnList = "email"),
         @Index(name = "idx_status", columnList = "status")
 })
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 public class User extends BaseEntity {
 
     @Id
@@ -34,23 +32,22 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Long userId;
 
+    @NotBlank(message = "카카오 ID는 필수입니다")
     @Column(name = "kakao_id", nullable = false, unique = true)
     private String kakaoId;
 
+    @Column(nullable = false, length = 50)
+    @Setter
     @NotBlank(message = "이름은 필수입니다")
     @Size(min = 2, max = 50, message = "이름은 2-50자 사이여야 합니다")
-    @Column(nullable = false, length = 50)
     private String name;
 
-    @Email(message = "올바른 이메일 형식이어야 합니다")
-    @Column(length = 100)
-    private String email;
-
     @Enumerated(EnumType.STRING)
+    @Setter
     @Column(nullable = false)
     private UserStatus status;
 
-    // ** 변경된 부분: 문자열로 저장, Java에선 List<String> 사용 **
+    @Setter
     @Convert(converter = ListToStringConverter.class)
     @Column(name = "preferred_genres", length = 300)
     private List<String> preferredGenres = new ArrayList<>();
@@ -58,11 +55,22 @@ public class User extends BaseEntity {
     @Column(name = "join_date", nullable = false)
     private LocalDate joinDate;
 
+    @Setter
     @Column(name = "profile_image_url", length = 200)
     private String profileImageUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Setter
+    private UserRole role = UserRole.USER;
+
+    //비지니스 메서드
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;
+    }
+
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
     }
 
     public void changeStatus(UserStatus newStatus, String reason) {
@@ -84,40 +92,51 @@ public class User extends BaseEntity {
         }
     }
 
+    //연관 관계 매핑
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Rating> ratings = new ArrayList<>();
+
+    //생성자 및 팩토리 메서드
     @Builder
-    private User(String kakaoId, String name, String email,
+    private User(String kakaoId, String name,
                  String profileImageUrl, List<String> preferredGenres,
-                 UserStatus status, LocalDate joinDate) {
+                 UserStatus status, LocalDate joinDate, UserRole role) {
         this.kakaoId = kakaoId;
         this.name = name;
-        this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.preferredGenres = preferredGenres != null ? preferredGenres : new ArrayList<>();
         this.status = status != null ? status : UserStatus.ACTIVE;
         this.joinDate = joinDate != null ? joinDate : LocalDate.now();
+        this.role = role != null ? role : UserRole.USER;
     }
 
-    public static User create(String kakaoId, String name, String email,
+    public static User create(String kakaoId, String name,
                               String profileImageUrl, List<String> preferredGenres) {
         return User.builder()
                 .kakaoId(kakaoId)
                 .name(name)
-                .email(email)
                 .profileImageUrl(profileImageUrl)
                 .preferredGenres(preferredGenres)
-                .status(UserStatus.ACTIVE)
-                .joinDate(LocalDate.now())
                 .build();
     }
 
     @Override
     public String toString() {
-        return "User{" +
+        return "{" +
                 "userId=" + userId +
                 ", kakaoId='" + kakaoId + '\'' +
                 ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
                 ", status=" + status +
+                ", role=" + role +
                 ", preferredGenres=" + preferredGenres +
                 ", joinDate=" + joinDate +
                 '}';

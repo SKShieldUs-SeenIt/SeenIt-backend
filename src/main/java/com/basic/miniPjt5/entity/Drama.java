@@ -55,4 +55,17 @@ public class Drama implements Content {
     private String lastAirDate; // 마지막 방송일
     private Integer numberOfSeasons; // 시즌 수
     private Integer numberOfEpisodes; // 에피소드 수
+
+    @OneToMany(mappedBy = "drama", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
+
+    // 통합 평균 평점 (TMDB + 사용자)
+    @Column
+    private Double combinedRating;
+
+    public void setCombinedRating(Double combinedRating) {
+        this.combinedRating = combinedRating;
+    }
 }

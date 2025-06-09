@@ -15,6 +15,8 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {  // ✅ Jp
     Optional<Genre> findByName(String name);
     List<Genre> findByNameContainingIgnoreCase(String name);
 
+    Boolean existsByName(String name);
+
     // 특정 장르의 영화/드라마 수 조회
     @Query("SELECT COUNT(m) FROM Movie m JOIN m.genres g WHERE g.id = :genreId")
     Long countMoviesByGenreId(@Param("genreId") Long genreId);
