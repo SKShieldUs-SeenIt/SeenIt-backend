@@ -25,9 +25,7 @@
 - 일반 게시글 작성 및 토론
 - 게시글에 댓글 작성 가능
 
-### 유튜브 링크 공유
-- 콘텐츠별 리뷰/요약 영상 공유
-- 썸네일 및 미리보기 기능 지원
+
 
 ---
 
@@ -36,7 +34,7 @@
 | 분류 | 기술 |
 |------|------|
 | Frontend | React, React Router, Axios, Zustand/Redux (선택), Tailwind CSS |
-
+| Backend | Spring Boot, Spring Data JPA, Spring Security, Spring Webflux, SpringDoc OpenAPI, Caffeine, Redis, JWT |
 
 ---
 
